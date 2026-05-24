@@ -719,9 +719,9 @@
                             <p style="font-weight: bold; text-decoration: underline;">${dataToPrint.nama}</p>
                         </div>
                         <div style="width: 45%;">
-                            <p>Kota Tangerang, ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                            <p style="margin-bottom: 50px;">Tim Studi dan Karir MBS,</p>
-                            <p style="font-weight: bold; text-decoration: underline;">All Teams.</p>
+                            <p>Tangerang Selatan, ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            <p style="margin-bottom: 50px;">Kepala Sekolah SMA Malika,</p>
+                            <p style="font-weight: bold; text-decoration: underline;">Ustadz Dr. H. Ahmad Malika, M.Pd.</p>
                         </div>
                     </div>
                 `;
@@ -738,7 +738,7 @@
                 html2pdf().set(opt).from(element).save();
             };
 
-            // --- EKSPOR REKAPITULASI SELURUH SISWA KE FORMAT PDF RESMI (REVISI BARU) ---
+            // --- EKSPOR REKAPITULASI SELURUH SISWA KE FORMAT PDF RESMI ---
             const handleExportAllPDF = () => {
                 if (allResults.length === 0) {
                     showAlert("Data Kosong", "Belum ada respon siswa yang masuk untuk dicetak.");
@@ -818,11 +818,54 @@
                 html2pdf().set(opt).from(element).save();
             };
 
-            // Fast Dummy Data Generator for Testing (Mendukung Hybrid offline & cloud)
+            // --- PEMBERSIHAN LIVE DATA (REVISI TERBARU UNTUK TRIAL CLEANUP) ---
+            const handleClearAllData = () => {
+                showConfirm(
+                    "Konfirmasi Hapus Seluruh Data",
+                    "Apakah Anda yakin ingin menghapus/mengosongkan seluruh data siswa yang masuk di dashboard? Tindakan ini akan menghapus data di database cloud (jika aktif) dan database offline lokal. Data yang dihapus tidak dapat dikembalikan.",
+                    async () => {
+                        setModalConfig(null);
+                        
+                        // 1. Bersihkan di Cloud Firestore jika aktif
+                        if (isCloudActive && user) {
+                            try {
+                                const batch = db.batch();
+                                let hasCloudDocs = false;
+                                allResults.forEach(row => {
+                                    // Pastikan dokumen merupakan dokumen cloud yang valid (bukan mock lokal)
+                                    if (row.id && !row.id.toString().startsWith('local_')) {
+                                        const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('submissions').doc(row.id);
+                                        batch.delete(docRef);
+                                        hasCloudDocs = true;
+                                    }
+                                });
+                                if (hasCloudDocs) {
+                                    await batch.commit();
+                                }
+                            } catch (err) {
+                                console.error("Gagal membersihkan data cloud:", err);
+                            }
+                        }
+
+                        // 2. Bersihkan memori lokal localStorage
+                        try {
+                            localStorage.removeItem('sma_malika_submissions');
+                        } catch (e) {
+                            console.error("Gagal menghapus localStorage:", e);
+                        }
+
+                        // 3. Reset state di UI
+                        setAllResults([]);
+                        showAlert("Sistem Berhasil Dibersihkan", "Seluruh data masuk (trial) telah dibersihkan secara total. Sistem kini siap digunakan kembali secara steril!");
+                    }
+                );
+            };
+
+            // Fast Dummy Data Generator for Testing
             const handleGenerateMockData = () => {
                 showConfirm(
                     "Konfirmasi Data Simulasi",
-                    "Apakah Anda yakin ingin menghasilkan 10 data simulasi acak siswa untuk kebutuhan uji visualisasi spreadsheet?",
+                    "Apakah Anda yakin ingin menghasilkan 10 data simulasi acak siswa untuk kebutuhan uji visualisasi?",
                     async () => {
                         setModalConfig(null);
                         const sampleClasses = ["XI IPA/IPS - Putra", "XI IPA/IPS - Putri"];
@@ -981,7 +1024,7 @@
                     <main className="flex-grow max-w-7xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 flex flex-col justify-start">
                         {screen === 'login' && (
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center py-4">
-                                {/* Left Info Banner (Kalimat Pembuka Baru) */}
+                                {/* Left Info Banner */}
                                 <div className="lg:col-span-7 space-y-6">
                                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold">
                                         <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
@@ -1622,7 +1665,7 @@
                                         <div className="pt-2 space-y-2">
                                             <input 
                                                 type="password" 
-                                                placeholder="Sandi Admin (Gunakan: adminmalika)"
+                                                placeholder="Sandi Admin (Gunakan: admincakep)"
                                                 value={adminPassword}
                                                 onChange={(e) => { setAdminPassword(e.target.value); setAdminError(''); }}
                                                 className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-3 px-4 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm text-center font-bold"
@@ -1659,13 +1702,22 @@
                                                     Generate 10 Data Simulasi
                                                 </button>
                                                 
-                                                {/* EKSPOR KE PDF (REVISI BARU) */}
+                                                {/* EKSPOR KE PDF */}
                                                 <button 
                                                     onClick={handleExportAllPDF}
                                                     className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center gap-2 shadow-sm"
                                                 >
                                                     <i className="fa-solid fa-file-pdf"></i>
                                                     Ekspor Rekapitulasi (PDF)
+                                                </button>
+
+                                                {/* TOMBOL BARU: HAPUS SEMUA DATA */}
+                                                <button 
+                                                    onClick={handleClearAllData}
+                                                    className="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center gap-2 shadow-sm"
+                                                >
+                                                    <i className="fa-solid fa-trash-can"></i>
+                                                    Hapus Semua Data
                                                 </button>
                                             </div>
                                         </div>
