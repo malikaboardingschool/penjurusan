@@ -25,10 +25,10 @@
     <!-- Babel Standalone for In-Browser JSX Compilation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
+    <!-- Firebase Compat SDKs (v10.8.0) - Sempurna untuk GitHub Pages -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
         body {
@@ -71,11 +71,7 @@
     <div id="root" class="flex flex-col flex-grow"></div>
 
     <!-- React and Application Code -->
-    <script type="text/babel" data-type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-        import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, doc, setDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
-
+    <script type="text/babel">
         // Destructure Hooks from Global React Object
         const { useState, useEffect, useRef, useMemo } = React;
 
@@ -117,7 +113,7 @@
             { id: 4, text: "Masa penempelan virus hingga sebelum munculnya gejala disebut...", options: ["A. Masa inaktif", "B. Masa kritis", "C. Masa nonfertil", "D. Masa inkubasi", "E. Masa fertil"], answer: "D", type: "IPA" },
             { id: 5, text: "Pak Andi mengalami gejala berupa warna kulit dan mata menjadi kuning, tinja berwarna pucat, muntah-muntah, hingga kesadaran menurun. Gejala lanjutannya adalah liver membengkak. Kemungkinan besar Pak Andi terserang penyakit...", options: ["A. DBD", "B. Hepatitis", "C. Gonorrhea", "D. AIDS", "E. Hemokromatosis"], answer: "B", type: "IPA" },
             { id: 6, text: "Unsur X³⁻ memiliki 54 proton. Konfigurasi elektron unsur X (netral) yang tepat adalah...", options: ["A. 2, 8, 18, 18, 8, 3", "B. 2, 8, 18, 18, 5", "C. 2, 8, 18, 18, 8, 4", "D. 2, 8, 18, 18, 8, 1", "E. 2, 8, 18, 18, 11"], answer: "B", type: "IPA" },
-            { id: 7, text: "Kelompok besaran di bawah ini yang termasuk besaran vektor adalah...", options: ["A. Kelajuan, masa, gaya", "B. Energi, usaha, suhu", "C. Kecepatan, gaya, perpindahan", "D. Tegangan, massa, gaya", "E. Tekanan, jumlah zat, ketinggian"], answer: "C", type: "IPA" },
+            { id: 7, text: "Kelompok besaran di bawah ini yang termasuk besaran vektor adalah...", options: ["A. Kelajuan, masa, gaya", "B. Energi, usaha, suhu", "C. Kecepatan, gaya, perpindahan", "D. Tegangan, masa, gaya", "E. Tekanan, jumlah zat, ketinggian"], answer: "C", type: "IPA" },
             { id: 8, text: "Berapakah jumlah angka penting pada hasil pengukuran massa 5,0067 g?", options: ["A. 2 AP", "B. 5 AP", "C. 6 AP", "D. 1 AP", "E. 4 AP"], answer: "B", type: "IPA" },
             { id: 9, text: "Seorang atlet lari menempuh jarak 100 meter dalam waktu 10 detik. Kelajuan rata-rata atlet tersebut adalah...", options: ["A. 5 m/s", "B. 10 m/s", "C. 1 m/s", "D. 20 m/s", "E. 50 m/s"], answer: "B", type: "IPA" },
             { id: 10, text: "Perhatikan peristiwa berikut:\n1. Mengendarai sepeda motor dengan kecepatan konstan\n2. Mendorong gerobak\n3. Buah yang tergantung pada pohon\n4. Air yang tertampung di bendungan\nPeristiwa yang memiliki energi kinetik nol adalah...", options: ["A. 1 dan 2", "B. 3 dan 4", "C. 2, 3, dan 4", "D. 4 saja", "E. 1 dan 3"], answer: "B", type: "IPA" },
@@ -133,7 +129,7 @@
             { id: 20, text: "Shigella dysenteriae merupakan bakteri penyebab penyakit...", options: ["A. Sifilis", "B. Kolera", "C. Disentri", "D. TBC", "E. PES"], answer: "C", type: "IPA" },
 
             // IPS / SOSIAL (21 - 40)
-            { id: 21, text: "Kelangkaan dalam ilmu ekonomi terjadi karena...", options: ["A. Semua kebutuhan manusia dapat dipenuhi", "B. Alat pemuas kebutuhan jumlahnya terbatas", "C. Produksi barang selalu meningkat", "D. Distribusi berjalan lancar", "E. Teknologi berkembang pesat"], answer: "B", type: "IPS" },
+            { id: 21, text: "Kelangkaan dalam ilmu ekonomi terjadi karena...", options: ["A. Semua kebutuhan manusia dapat dipenuhi", "B. Alat pemuas kebutuhan jumlahnya terbatas", "C. Production barang selalu meningkat", "D. Distribusi berjalan lancar", "E. Teknologi berkembang pesat"], answer: "B", type: "IPS" },
             { id: 22, text: "Perhatikan kegiatan berikut:\n(1) Petani menanam padi\n(2) Pedagang menjual sembako\n(3) Sopir mengangkut hasil panen\n(4) Konsumen membeli beras\nKegiatan distribusi ditunjukkan oleh nomor...", options: ["A. (1)", "B. (2)", "C. (3)", "D. (2) dan (3)", "E. (1) dan (4)"], answer: "D", type: "IPS" },
             { id: 23, text: "Dampak positif globalisasi dalam bidang pendidikan adalah...", options: ["A. Menurunnya kualitas budaya lokal", "B. Mudahnya akses informasi dan ilmu pengetahuan", "C. Bertambahnya pengangguran", "D. Meningkatnya perilaku konsumtif", "E. Hilangnya identitas bangsa"], answer: "B", type: "IPS" },
             { id: 24, text: "Faktor utama yang mempengaruhi persebaran penduduk Indonesia secara merata / konsentrasi adalah...", options: ["A. Jenis pakaian adat", "B. Kesamaan bahasa daerah", "C. Kondisi geografis dan ekonomi", "D. Bentuk rumah tradisional", "E. Banyaknya sungai besar"], answer: "C", type: "IPS" },
@@ -229,7 +225,7 @@
             { id: "Content Creator", label: "Content Creator", category: "Lainnya" }
         ];
 
-        // --- SKALA LIKERT BARU (1-4) ---
+        // --- SKALA LIKERT (1-4) ---
         const SKALA_LIKERT = [
             { value: 1, label: "Tidak Sesuai", color: "border-red-200 hover:border-red-400 text-red-700 bg-red-50/30" },
             { value: 2, label: "Cukup Sesuai", color: "border-amber-200 hover:border-amber-400 text-amber-700 bg-amber-50/30" },
@@ -237,19 +233,22 @@
             { value: 4, label: "Sangat Sesuai", color: "border-emerald-200 hover:border-emerald-400 text-emerald-700 bg-emerald-50/30" }
         ];
 
-        // --- FIREBASE CONFIGURATION ---
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "",
-            authDomain: "mock-app.firebaseapp.com",
-            projectId: "mock-app",
-            storageBucket: "mock-app.appspot.com",
-            messagingSenderId: "12345",
-            appId: "1-12345"
+        // --- FIREBASE CONFIGURATION (FOR GITHUB PAGES PLUG-AND-PLAY) ---
+        const fallbackConfig = {
+            apiKey: "MASUKKAN_API_KEY_FIREBASE_ANDA",
+            authDomain: "sma-malika-placement.firebaseapp.com",
+            projectId: "sma-malika-placement",
+            storageBucket: "sma-malika-placement.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abcdef123456"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : fallbackConfig;
+
+        // Inisialisasi Firebase secara aman untuk menghindari instans ganda (Mencegah Unexpected State)
+        const app = firebase.apps.length === 0 ? firebase.initializeApp(firebaseConfig) : firebase.app();
+        const auth = firebase.auth(app);
+        const db = firebase.firestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'sma-malika-placement';
 
         // --- MAIN APPLICATION ---
@@ -313,30 +312,46 @@
                 });
             };
 
-            // Initial Firebase Authentication (Rule 3)
+            // Initial Firebase Authentication (Rule 3) - Menjamin Autentikasi Selesai Terlebih Dahulu
             useEffect(() => {
+                let isMounted = true;
                 const initAuth = async () => {
                     try {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(auth);
+                        let current = auth.currentUser;
+                        if (!current) {
+                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                const cred = await auth.signInWithCustomToken(__initial_auth_token);
+                                current = cred.user;
+                            } else {
+                                const cred = await auth.signInAnonymously();
+                                current = cred.user;
+                            }
+                        }
+                        if (isMounted) {
+                            setUser(current);
                         }
                     } catch (err) {
                         console.error("Auth error:", err);
                     }
                 };
                 initAuth();
-                const unsubscribe = onAuthStateChanged(auth, setUser);
-                return () => unsubscribe();
+                const unsubscribe = auth.onAuthStateChanged((u) => {
+                    if (isMounted) {
+                        setUser(u);
+                    }
+                });
+                return () => {
+                    isMounted = false;
+                    unsubscribe();
+                };
             }, []);
 
-            // Real-time Database Sync (Rule 2 & 3)
+            // Real-time Database Sync (Rule 2 & 3) - Dipisahkan untuk memastikan user sudah terautentikasi
             useEffect(() => {
                 if (!user) return;
-                const pathCol = collection(db, 'artifacts', appId, 'public', 'data', 'submissions');
+                const pathCol = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('submissions');
                 
-                const unsubscribe = onSnapshot(pathCol, (snapshot) => {
+                const unsubscribe = pathCol.onSnapshot((snapshot) => {
                     const data = [];
                     snapshot.forEach((doc) => {
                         data.push({ id: doc.id, ...doc.data() });
@@ -513,8 +528,8 @@
 
                 if (user) {
                     try {
-                        const pathCol = collection(db, 'artifacts', appId, 'public', 'data', 'submissions');
-                        await addDoc(pathCol, finalPayload);
+                        const pathCol = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('submissions');
+                        await pathCol.add(finalPayload);
                     } catch (err) {
                         console.error("Firestore submit error: ", err);
                     }
@@ -588,7 +603,7 @@
                                 <tr>
                                     <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight: bold; color: #334155;">1. Ujian Kognitif Akademik</td>
                                     <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold;">${dataToPrint.results?.scoreIpaUjian} / 20 Soal</td>
-                                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold;">${dataToPrint.results?.scoreipsUjian || dataToPrint.results?.scoreIpsUjian} / 20 Soal</td>
+                                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold;">${dataToPrint.results?.scoreIpsUjian} / 20 Soal</td>
                                 </tr>
                                 <tr>
                                     <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight: bold; color: #334155;">2. Angket Minat Siswa</td>
@@ -618,8 +633,8 @@
                             <p style="font-weight: bold; text-decoration: underline;">${dataToPrint.nama}</p>
                         </div>
                         <div style="width: 45%;">
-                            <p>Tangerang Selatan, ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                            <p style="margin-bottom: 50px;">Kepala SMA Malika,</p>
+                            <p>Kota Tangerang, ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            <p style="margin-bottom: 50px;">Kepala SMA Malika IBS,</p>
                             <p style="font-weight: bold; text-decoration: underline;">Ustadz H. Sahroni, S.Pd.I</p>
                         </div>
                     </div>
@@ -674,7 +689,7 @@
                 document.body.removeChild(link);
             };
 
-            // Fast Dummy Data Generator for Teacher Testing
+            // Fast Dummy Data Generator for Testing
             const handleGenerateMockData = () => {
                 showConfirm(
                     "Konfirmasi Data Simulasi",
@@ -721,8 +736,12 @@
                             };
 
                             if (user) {
-                                const pathCol = collection(db, 'artifacts', appId, 'public', 'data', 'submissions');
-                                await addDoc(pathCol, mockPayload);
+                                try {
+                                    const pathCol = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('submissions');
+                                    await pathCol.add(mockPayload);
+                                } catch (err) {
+                                    console.error("Simulation data insert error:", err);
+                                }
                             }
                         }
                         showAlert("Generasi Selesai", "Berhasil menyinkronkan 10 data simulasi baru ke server database.");
@@ -822,7 +841,7 @@
                                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Masa Depan Terbaikmu</span>
                                     </h2>
                                     <p className="text-slate-600 leading-relaxed max-w-xl text-sm sm:text-base">
-                                        Selamat datang di portal resmi penentuan peminatan kelas XI SMA Malika Islamic Boarding School. Sistem ini memadukan Ujian Penjurusan IPA IPS dan Angket Minat, serta Kecenderungan Gaya Belajar untuk memberikan rekomendasi yang objektif dan transparan.
+                                        Selamat datang di portal resmi penentuan peminatan kelas XI SMA Malika Islamic Boarding School. Sistem ini memadukan Ujian Akademik Penjurusan IPA & IPS, Angket Minat serta Kecenderungan Gaya Belajar untuk memberikan rekomendasi yang objektif dan transparan.
                                     </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                                         <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100 flex gap-3 items-start">
