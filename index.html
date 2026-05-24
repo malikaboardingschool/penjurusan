@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Penjurusan & Angket Minat - SMA Malika IBS</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- HTML2PDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- React & ReactDOM Global UMD Builds -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel Standalone for In-Browser JSX Compilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes scaleUp {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+        .animate-scaleUp {
+            animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <!-- ROOT REACT APP MOUNT -->
+    <div id="root" class="flex flex-col flex-grow"></div>
+
+    <!-- React and Application Code -->
+    <script type="text/babel" data-type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, doc, setDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+        // Destructure Hooks from Global React Object
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        // --- DATABASE SISWA ---
+        const DATABASE_SISWA = {
+            "XI IPA/IPS - Putra": [
+                "Adhwa Arsya Gatfan", "Afa Zaidan Putra Tamba", "Ahmad Rafli Dhani Muzakki", 
+                "Akmal Ihsan Huwaidi", "Albisna Zinata Ababil", "Asyraf Fairuz Mumtaz", 
+                "Attiq Muzaki Ibrahim", "Bayanaca Qotthon Elbarca", "Bazyli Rafif Azka", 
+                "Charli Andestian", "Danendra Apta Kayana", "Dhafinzha Muhammad Fakhri", 
+                "Fasabbi Haqiqie Pramada Rozak", "Irsyad Haitami Fajrin", "Mochammad Alfath Dhafin", 
+                "Muhamad Rafka Alvaro", "Muhammad Adil Shidqi", "Muhammad Agla Alfathur Rahman", 
+                "Muhammad Ammar Muzakki", "Muhammad Azmal Baihaqi Kayzen", "Muhammad Azmi", 
+                "Muhammad Fahri Alfarizi", "Muhammad Fahri Rosadi", "Muhammad Suryo Nugra Putra Anwar", 
+                "Nawwaf Bilza Pakpahan", "Raditya Bustanul Tamam", "Raihan Ramadhan", 
+                "Salim Al Habsyi", "Sayyid Aqil Sakhiy Wahyudi", "Yudha Pratama Nurwicaksana Nasution"
+            ],
+            "XI IPA/IPS - Putri": [
+                "Alfina Dhiya Ulhaq", "Amelinda Nur Febrina", "Amira Azzarine", 
+                "Anjeli Ghenia Asmedi", "Aulia Zahra Nur Sakinah", "Citra Aulia Saputra", 
+                "Callysta Zhahira", "Egidhea Sakha Gendis", "Faiha Ulayya", 
+                "Kanaya Azzalea Maulida", "Kayla Putri Az Zahra", "Kesya Anastasya Putri", 
+                "Keysha Hana Alzena", "Khansa Avicenna", "Maia Dina Islamiy Shobariah", 
+                "Najwa Althafunisa", "Nasya Adya Mustafidah", "Raihana Radwa Fahira", 
+                "Ratu Syahlina Samlawi", "Siti Aulia Rahma", "Syifa Az Zahra", 
+                "Tia Anggrianti", "Ussy Elsinasari", "Vicky Fadilah Lutfiyana", 
+                "Virly Evelyn Dean Zahra", "Wildatul Hasanah", "Yolanda Febriani", 
+                "Yuha Rizqiyatul Muyassaroh", "Zahiratul Aisyi", "Zulfa Nurul Fauziah", 
+                "Cinta Vineysha"
+            ]
+        };
+
+        // --- SOAL UJIAN PENJURUSAN (40 SOAL) ---
+        const SOAL_UJIAN = [
+            // IPA / SAINS (1 - 20)
+            { id: 1, text: "Anoa, tarsius, komodo, dan babi rusa merupakan hewan yang termasuk dalam kawasan...", options: ["A. Asiatis", "B. Peralihan", "C. Australis", "D. Paleartik", "E. Northenik"], answer: "B", type: "IPA" },
+            { id: 2, text: "Perhatikan nama spesies di bawah ini!\n1. Mangifera indica\n2. Gnetum Gnemon\n3. Musa paradisiaca\n4. Arachis Hypogea\n5. Cycas Rumpii\n6. Ficus benjamina\nNama spesies yang sesuai dengan aturan binomial nomenclature ditunjukkan oleh nomor...", options: ["A. 1, 2, 3", "B. 1, 3, 4", "C. 1, 4, 5", "D. 1, 3, 6", "E. 1, 2, 5"], answer: "D", type: "IPA" },
+            { id: 3, text: "Hidrogen, Litium, Natrium, Kalium, dan Rubidium berada pada golongan yang sama. Jari-jari atom terbesar dimiliki oleh unsur...", options: ["A. Rubidium", "B. Kalium", "C. Natrium", "D. Litium", "E. Hidrogen"], answer: "A", type: "IPA" },
+            { id: 4, text: "Masa penempelan virus hingga sebelum munculnya gejala disebut...", options: ["A. Masa inaktif", "B. Masa kritis", "C. Masa nonfertil", "D. Masa inkubasi", "E. Masa fertil"], answer: "D", type: "IPA" },
+            { id: 5, text: "Pak Andi mengalami gejala berupa warna kulit dan mata menjadi kuning, tinja berwarna pucat, muntah-muntah, hingga kesadaran menurun. Gejala lanjutannya adalah liver membengkak. Kemungkinan besar Pak Andi terserang penyakit...", options: ["A. DBD", "B. Hepatitis", "C. Gonorrhea", "D. AIDS", "E. Hemokromatosis"], answer: "B", type: "IPA" },
+            { id: 6, text: "Unsur X³⁻ memiliki 54 proton. Konfigurasi elektron unsur X (netral) yang tepat adalah...", options: ["A. 2, 8, 18, 18, 8, 3", "B. 2, 8, 18, 18, 5", "C. 2, 8, 18, 18, 8, 4", "D. 2, 8, 18, 18, 8, 1", "E. 2, 8, 18, 18, 11"], answer: "B", type: "IPA" },
+            { id: 7, text: "Kelompok besaran di bawah ini yang termasuk besaran vektor adalah...", options: ["A. Kelajuan, masa, gaya", "B. Energi, usaha, suhu", "C. Kecepatan, gaya, perpindahan", "D. Tegangan, massa, gaya", "E. Tekanan, jumlah zat, ketinggian"], answer: "C", type: "IPA" },
+            { id: 8, text: "Berapakah jumlah angka penting pada hasil pengukuran massa 5,0067 g?", options: ["A. 2 AP", "B. 5 AP", "C. 6 AP", "D. 1 AP", "E. 4 AP"], answer: "B", type: "IPA" },
+            { id: 9, text: "Seorang atlet lari menempuh jarak 100 meter dalam waktu 10 detik. Kelajuan rata-rata atlet tersebut adalah...", options: ["A. 5 m/s", "B. 10 m/s", "C. 1 m/s", "D. 20 m/s", "E. 50 m/s"], answer: "B", type: "IPA" },
+            { id: 10, text: "Perhatikan peristiwa berikut:\n1. Mengendarai sepeda motor dengan kecepatan konstan\n2. Mendorong gerobak\n3. Buah yang tergantung pada pohon\n4. Air yang tertampung di bendungan\nPeristiwa yang memiliki energi kinetik nol adalah...", options: ["A. 1 dan 2", "B. 3 dan 4", "C. 2, 3, dan 4", "D. 4 saja", "E. 1 dan 3"], answer: "B", type: "IPA" },
+            { id: 11, text: "Berikut ini yang termasuk gas rumah kaca, kecuali...", options: ["A. CO₂", "B. CH₄", "C. MnO", "D. CFC", "E. O₂"], answer: "C", type: "IPA" },
+            { id: 12, text: "Di bawah ini merupakan dampak pemanasan global terhadap ekosistem, kecuali...", options: ["A. Perubahan pola cuaca ekstrem", "B. Es di kutub mencair", "C. Kenaikan permukaan air laut", "D. Terjaganya flora dan fauna", "E. Turunnya hujan asam"], answer: "D", type: "IPA" },
+            { id: 13, text: "Reaksi fotosintesis menghasilkan...", options: ["A. Oksigen dan glukosa", "B. Karbon dioksida dan air", "C. Nitrogen dan glukosa", "D. Energi dan uap air", "E. Energi dan karbon"], answer: "A", type: "IPA" },
+            { id: 14, text: "Aktivitas manusia yang paling berkontribusi terhadap peningkatan gas rumah kaca adalah...", options: ["A. Penggunaan kendaraan listrik", "B. Pembakaran bahan bakar fosil", "C. Reboisasi hutan", "D. Pembuatan kompos", "E. Penanaman kembali"], answer: "B", type: "IPA" },
+            { id: 15, text: "Diketahui F₁ = 150 N ke kiri dan F₂ = 100 N ke kanan. Jika massa benda 10 kg, percepatan yang dialami benda adalah...", options: ["A. 50 m/s²", "B. 0,5 m/s²", "C. 5 m/s²", "D. 0.1 m/s²", "E. 2 m/s²"], answer: "C", type: "IPA" },
+            { id: 16, text: "Perhatikan sistem katrol di mana m₁ berada di kiri dan m₂ berada di kanan (m₂ > m₁). Hubungan tegangan tali T dengan berat benda W yang tepat saat sistem bergerak adalah...", options: ["A. T < W₁", "B. T < W₂", "C. W₁ > T", "D. W₂ < T", "E. T = W₂"], answer: "B", type: "IPA" },
+            { id: 17, text: "Untuk memenuhi kebutuhan tenaga listrik di daerah terpencil atau pulau-pulau terluar di Indonesia yang memiliki aliran sungai dapat dikembangkan energi...", options: ["A. Air (Mikrohidro)", "B. Biogas", "C. Alkohol", "D. Biodiesel", "E. Biomolekuler"], answer: "A", type: "IPA" },
+            { id: 18, text: "Ion besi memiliki biloks lebih dari satu. Ion Fe³⁺ dan Cl⁻ membentuk senyawa FeCl₃. Penamaan senyawa yang tepat adalah...", options: ["A. Besi klorida", "B. Besi (III) klorida", "C. Besi (I) klorida", "D. Klorida (III) besi", "E. Klorida besi"], answer: "B", type: "IPA" },
+            { id: 19, text: "Dalam setiap reaksi kimia, massa zat sebelum dan sesudah reaksi selalu sama. Pernyataan tersebut merupakan bunyi Hukum...", options: ["A. Lavoisier", "B. Proust", "C. Avogadro", "D. Dalton", "E. Gay Lussac"], answer: "A", type: "IPA" },
+            { id: 20, text: "Shigella dysenteriae merupakan bakteri penyebab penyakit...", options: ["A. Sifilis", "B. Kolera", "C. Disentri", "D. TBC", "E. PES"], answer: "C", type: "IPA" },
+
+            // IPS / SOSIAL (21 - 40)
+            { id: 21, text: "Kelangkaan dalam ilmu ekonomi terjadi karena...", options: ["A. Semua kebutuhan manusia dapat dipenuhi", "B. Alat pemuas kebutuhan jumlahnya terbatas", "C. Produksi barang selalu meningkat", "D. Distribusi berjalan lancar", "E. Teknologi berkembang pesat"], answer: "B", type: "IPS" },
+            { id: 22, text: "Perhatikan kegiatan berikut:\n(1) Petani menanam padi\n(2) Pedagang menjual sembako\n(3) Sopir mengangkut hasil panen\n(4) Konsumen membeli beras\nKegiatan distribusi ditunjukkan oleh nomor...", options: ["A. (1)", "B. (2)", "C. (3)", "D. (2) dan (3)", "E. (1) dan (4)"], answer: "D", type: "IPS" },
+            { id: 23, text: "Dampak positif globalisasi dalam bidang pendidikan adalah...", options: ["A. Menurunnya kualitas budaya lokal", "B. Mudahnya akses informasi dan ilmu pengetahuan", "C. Bertambahnya pengangguran", "D. Meningkatnya perilaku konsumtif", "E. Hilangnya identitas bangsa"], answer: "B", type: "IPS" },
+            { id: 24, text: "Faktor utama yang mempengaruhi persebaran penduduk Indonesia secara merata / konsentrasi adalah...", options: ["A. Jenis pakaian adat", "B. Kesamaan bahasa daerah", "C. Kondisi geografis dan ekonomi", "D. Bentuk rumah tradisional", "E. Banyaknya sungai besar"], answer: "C", type: "IPS" },
+            { id: 25, text: "Salah satu ciri interaksi sosial yang mengarah pada proses asosiatif adalah...", options: ["A. Persaingan usaha tidak sehat", "B. Tawuran antar pelajar", "C. Kerja sama membersihkan lingkungan", "D. Konflik antar kelompok", "E. Demonstrasi anarkis"], answer: "C", type: "IPS" },
+            { id: 26, text: "Dalam sistem ekonomi pasar, kegiatan ekonomi lebih banyak ditentukan oleh...", options: ["A. Pemerintah pusat", "B. Pemerintah daerah", "C. Mekanisme permintaan dan penawaran", "D. Koperasi", "E. Bank sentral"], answer: "C", type: "IPS" },
+            { id: 27, text: "Tujuan utama dibentuknya ASEAN adalah...", options: ["A. Menguasai perdagangan dunia", "B. Membentuk negara baru di Asia Tenggara", "C. Menjalin kerja sama dan stabilitas kawasan", "D. Menyeragamkan budaya negara anggota", "E. Menghapus batas negara"], answer: "C", type: "IPS" },
+            { id: 28, text: "Perhatikan pernyataan berikut:\n(1) Memiliki rasa nasionalisme\n(2) Mengutamakan kepentingan pribadi\n(3) Rela berkorban demi bangsa\n(4) Tidak peduli terhadap lingkungan sosial\nNilai-nilai semangat kebangsaan ditunjukkan oleh nomor...", options: ["A. (1) dan (2)", "B. (1) dan (3)", "C. (2) dan (4)", "D. (3) dan (4)", "E. (2) dan (3)"], answer: "B", type: "IPS" },
+            { id: 29, text: "Jika permintaan meningkat sedangkan jumlah barang tetap, maka harga cenderung...", options: ["A. Turun", "B. Tetap", "C. Naik", "D. Hilang", "E. Tidak stabil"], answer: "C", type: "IPS" },
+            { id: 30, text: "Salah satu penyebab terjadinya urbanisasi adalah...", options: ["A. Banyaknya lahan pertanian di desa", "B. Rendahnya fasilitas kota", "C. Kurangnya lapangan kerja di desa", "D. Sedikitnya penduduk kota", "E. Tingginya hasil pertanian desa"], answer: "C", type: "IPS" },
+            { id: 31, text: "Peta yang menggambarkan satu tema tertentu, misalnya persebaran tambang, disebut...", options: ["A. Peta umum", "B. Peta topografi", "C. Peta dunia", "D. Peta tematik", "E. Peta kontur"], answer: "D", type: "IPS" },
+            { id: 32, text: "Bank Indonesia memiliki tugas utama untuk...", options: ["A. Memberikan kredit kepada masyarakat", "B. Mengatur dan menjaga kestabilan nilai rupiah", "C. Mengelola pajak negara", "D. Menjual surat berharga", "E. Menyediakan kebutuhan pokok"], answer: "B", type: "IPS" },
+            { id: 33, text: "Salah satu contoh mobilitas sosial vertikal naik adalah...", options: ["A. Petani berpindah ke kota", "B. Guru pindah sekolah", "C. Karyawan menjadi manajer perusahaan", "D. Pedagang berpindah pasar", "E. Siswa berpindah kelas"], answer: "C", type: "IPS" },
+            { id: 34, text: "Kerajaan Sriwijaya berkembang pesat karena...", options: ["A. Memiliki banyak gunung api", "B. Menjadi pusat perdagangan dan pelayaran", "C. Menguasai pertanian modern", "D. Memiliki pasukan terbesar di Asia", "E. Menjadi pusat industri tekstil"], answer: "B", type: "IPS" },
+            { id: 35, text: "Sikap yang tepat dalam menghadapi keberagaman budaya adalah...", options: ["A. Menganggap budaya sendiri paling baik", "B. Menolak budaya daerah lain", "C. Menghargai perbedaan budaya", "D. Memaksakan budaya tertentu", "E. Menghindari interaksi sosial"], answer: "C", type: "IPS" },
+            { id: 36, text: "Inflasi dapat menyebabkan...", options: ["A. Nilai uang meningkat", "B. Harga barang menurun", "C. Daya beli masyarakat menurun", "D. Pembuat kebijakan panik", "E. Pengangguran hilang total"], answer: "C", type: "IPS" },
+            { id: 37, text: "Perdagangan internasional memberikan manfaat bagi suatu negara karena...", options: ["A. Semua barang diproduksi sendiri", "B. Negara tidak memerlukan teknologi", "C. Memperluas pasar dan menambah devisa", "D. Mengurangi hubungan antar negara", "E. Membatasi kebutuhan masyarakat"], answer: "C", type: "IPS" },
+            { id: 38, text: "Perubahan sosial yang berlangsung cepat dan mempengaruhi sendi kehidupan masyarakat disebut...", options: ["A. Evolusi", "B. Revolusi", "C. Adaptasi", "D. Integrasi", "E. Akulturasi"], answer: "B", type: "IPS" },
+            { id: 39, text: "Salah satu contoh pelanggaran norma kesopanan adalah...", options: ["A. Mencuri motor", "B. Melanggar lalu lintas", "C. Berkata kasar kepada orang tua", "D. Tidak membayar pajak", "E. Melakukan korupsi"], answer: "C", type: "IPS" },
+            { id: 40, text: "Bonus demografi dapat menjadi keuntungan bagi Indonesia apabila...", options: ["A. Jumlah pengangguran meningkat", "B. Penduduk usia produktif memiliki kualitas baik", "C. Angka kelahiran menurun drastis", "D. Penduduk lanjut usia lebih banyak", "E. Lapangan kerja semakin sedikit"], answer: "B", type: "IPS" }
+        ];
+
+        // --- ANGKET PERNYATAAN ---
+        const ANGKET_IPA = [
+            "Saya menikmati pelajaran Matematika.",
+            "Saya tertarik memahami fenomena alam secara ilmiah.",
+            "Saya senang melakukan percobaan atau praktikum.",
+            "Saya mudah memahami rumus dan perhitungan.",
+            "Saya tertarik pada teknologi, mesin, atau inovasi sains.",
+            "Saya senang mencari penyebab suatu peristiwa secara logis.",
+            "Saya menikmati pelajaran Fisika.",
+            "Saya menikmati pelajaran Kimia.",
+            "Saya menikmati pelajaran Biologi.",
+            "Saya tertarik pada dunia kesehatan atau kedokteran.",
+            "Saya mampu fokus mengerjakan soal hitungan dalam waktu lama.",
+            "Saya senang memecahkan masalah yang membutuhkan analisis detail.",
+            "Saya tertarik pada dunia teknik atau informatika.",
+            "Saya sering memperoleh nilai baik pada pelajaran eksakta.",
+            "Saya menyukai pembelajaran berbasis penelitian dan observasi."
+        ];
+
+        const ANGKET_IPS = [
+            "Saya tertarik membahas kondisi sosial masyarakat.",
+            "Saya menikmati pelajaran Ekonomi.",
+            "Saya menikmati pelajaran Geografi.",
+            "Saya menikmati pelajaran Sosiologi.",
+            "Saya tertarik pada dunia bisnis dan kewirausahaan.",
+            "Saya suka berdiskusi dan menyampaikan pendapat.",
+            "Saya tertarik memahami perilaku manusia dan masyarakat.",
+            "Saya senang menganalisis isu ekonomi atau sosial.",
+            "Saya tertarik pada dunia hukum, politik, atau pemerintahan.",
+            "Saya lebih nyaman belajar melalui diskusi daripada hitungan rumit.",
+            "Saya memiliki kemampuan komunikasi yang baik.",
+            "Saya tertarik pada dunia pemasaran atau manajemen.",
+            "Saya senang membaca berita atau perkembangan dunia.",
+            "Saya sering memperoleh nilai baik pada pelajaran sosial.",
+            "Saya tertarik pada profesi yang berkaitan dengan hubungan manusia."
+        ];
+
+        const ANGKET_GAYA_BELAJAR = [
+            { id: 1, text: "Saya senang belajar dengan data, angka, dan analisis.", category: "IPA" },
+            { id: 2, text: "Saya lebih mudah memahami konsep melalui diskusi dan studi kasus.", category: "IPS" },
+            { id: 3, text: "Saya suka kegiatan observasi dan eksperimen.", category: "IPA" },
+            { id: 4, text: "Saya nyaman berbicara di depan orang lain.", category: "IPS" },
+            { id: 5, text: "Saya teliti terhadap detail dan proses.", category: "IPA" },
+            { id: 6, text: "Saya senang menganalisis perilaku manusia atau fenomena sosial.", category: "IPS" },
+            { id: 7, text: "Saya lebih menikmati tantangan logika dibanding hafalan.", category: "IPA" },
+            { id: 8, text: "Saya memiliki rasa ingin tahu tinggi terhadap perkembangan masyarakat.", category: "IPS" },
+            { id: 9, text: "Saya senang bekerja menggunakan prosedur yang sistematis.", category: "IPA" },
+            { id: 10, text: "Saya tertarik pada kegiatan organisasi atau kepemimpinan.", category: "IPS" }
+        ];
+
+        const PROFESI_LIST = [
+            { id: "Dokter", label: "Dokter", category: "IPA" },
+            { id: "Apoteker", label: "Apoteker", category: "IPA" },
+            { id: "Peneliti", label: "Peneliti", category: "IPA" },
+            { id: "Insinyur / Teknik", label: "Insinyur / Teknik", category: "IPA" },
+            { id: "Programmer / IT", label: "Programmer / IT", category: "IPA" },
+            { id: "Arsitek", label: "Arsitek", category: "IPA" },
+            { id: "Pilot", label: "Pilot", category: "IPA" },
+            { id: "Guru / Dosen Ilmu Sains / IPA", label: "Guru / Dosen IPA", category: "IPA" },
+            { id: "Akuntan", label: "Akuntan", category: "IPS" },
+            { id: "Pengusaha", label: "Pengusaha", category: "IPS" },
+            { id: "Diplomat", label: "Diplomat", category: "IPS" },
+            { id: "Pengacara", label: "Pengacara", category: "IPS" },
+            { id: "Psikolog", label: "Psikolog", category: "IPS" },
+            { id: "Analis Ekonomi", label: "Analis Ekonomi", category: "IPS" },
+            { id: "Manajer Perusahaan", label: "Manajer Perusahaan", category: "IPS" },
+            { id: "ASN/Pemerintahan", label: "ASN/Pemerintahan", category: "IPS" },
+            { id: "Jurnalis", label: "Jurnalis", category: "IPS" },
+            { id: "Guru / Dosen Ilmu Sosial / IPS", label: "Guru / Dosen IPS", category: "IPS" },
+            { id: "Ulama", label: "Ulama", category: "Lainnya" },
+            { id: "Atlet", label: "Atlet", category: "Lainnya" },
+            { id: "Content Creator", label: "Content Creator", category: "Lainnya" }
+        ];
+
+        // --- SKALA LIKERT BARU (1-4) ---
+        const SKALA_LIKERT = [
+            { value: 1, label: "Tidak Sesuai", color: "border-red-200 hover:border-red-400 text-red-700 bg-red-50/30" },
+            { value: 2, label: "Cukup Sesuai", color: "border-amber-200 hover:border-amber-400 text-amber-700 bg-amber-50/30" },
+            { value: 3, label: "Sesuai", color: "border-blue-200 hover:border-blue-400 text-blue-700 bg-blue-50/30" },
+            { value: 4, label: "Sangat Sesuai", color: "border-emerald-200 hover:border-emerald-400 text-emerald-700 bg-emerald-50/30" }
+        ];
+
+        // --- FIREBASE CONFIGURATION ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "",
+            authDomain: "mock-app.firebaseapp.com",
+            projectId: "mock-app",
+            storageBucket: "mock-app.appspot.com",
+            messagingSenderId: "12345",
+            appId: "1-12345"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sma-malika-placement';
+
+        // --- MAIN APPLICATION ---
+        function App() {
+            // Screen state: 'login' | 'assessment' | 'result' | 'admin'
+            const [screen, setScreen] = useState('login');
+            
+            // Student State
+            const [selectedClass, setSelectedClass] = useState('XI IPA/IPS - Putra');
+            const [selectedName, setSelectedName] = useState('');
+            const [user, setUser] = useState(null);
+
+            // Assessment Step State: 
+            const [step, setStep] = useState(0);
+
+            // Ujian State (Answers)
+            const [ujianAnswers, setUjianAnswers] = useState({});
+            const [ujianPage, setUjianPage] = useState(0);
+
+            // Angket State (Answers 1-4 for IPA, IPS)
+            const [angketIpaAnswers, setAngketIpaAnswers] = useState({});
+            const [angketIpsAnswers, setAngketIpsAnswers] = useState({});
+            const [gayaBelajarAnswers, setGayaBelajarAnswers] = useState({});
+
+            // Careers State
+            const [selectedCareers, setSelectedCareers] = useState([]);
+            const [otherCareer, setOtherCareer] = useState('');
+
+            // Submitted Result / History from db
+            const [allResults, setAllResults] = useState([]);
+            const [activeResult, setActiveResult] = useState(null);
+            
+            // Admin Panel State
+            const [adminPassword, setAdminPassword] = useState('');
+            const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+            const [adminError, setAdminError] = useState('');
+
+            // Custom Modal State
+            const [modalConfig, setModalConfig] = useState(null);
+
+            // Helper untuk modal notifikasi kustom
+            const showAlert = (title, message, onConfirm = () => setModalConfig(null)) => {
+                setModalConfig({
+                    title,
+                    message,
+                    showCancel: false,
+                    confirmText: "Mengerti",
+                    onConfirm
+                });
+            };
+
+            const showConfirm = (title, message, onConfirm, onCancel = () => setModalConfig(null)) => {
+                setModalConfig({
+                    title,
+                    message,
+                    showCancel: true,
+                    confirmText: "Ya, Lanjutkan",
+                    cancelText: "Batal",
+                    onConfirm,
+                    onCancel
+                });
+            };
+
+            // Initial Firebase Authentication (Rule 3)
+            useEffect(() => {
+                const initAuth = async () => {
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (err) {
+                        console.error("Auth error:", err);
+                    }
+                };
+                initAuth();
+                const unsubscribe = onAuthStateChanged(auth, setUser);
+                return () => unsubscribe();
+            }, []);
+
+            // Real-time Database Sync (Rule 2 & 3)
+            useEffect(() => {
+                if (!user) return;
+                const pathCol = collection(db, 'artifacts', appId, 'public', 'data', 'submissions');
+                
+                const unsubscribe = onSnapshot(pathCol, (snapshot) => {
+                    const data = [];
+                    snapshot.forEach((doc) => {
+                        data.push({ id: doc.id, ...doc.data() });
+                    });
+                    setAllResults(data);
+                }, (error) => {
+                    console.error("Firestore loading error: ", error);
+                });
+
+                return () => unsubscribe();
+            }, [user]);
+
+            // Filtered students according to search
+            const studentsList = DATABASE_SISWA[selectedClass] || [];
+
+            // Main scoring logic (Disinkronkan dengan rentang skor skala 1-4)
+            const calculateResults = (finalAnswersUjian, finalAngketIpa, finalAngketIps, finalGayaBelajar, finalCareers) => {
+                let scoreIpaUjian = 0;
+                let scoreIpsUjian = 0;
+
+                SOAL_UJIAN.forEach((soal) => {
+                    const givenAns = finalAnswersUjian[soal.id];
+                    if (givenAns === soal.answer) {
+                        if (soal.type === "IPA") scoreIpaUjian += 1;
+                        else scoreIpsUjian += 1;
+                    }
+                });
+
+                const sumIpaAngket = Object.values(finalAngketIpa).reduce((a, b) => a + Number(b), 0);
+                const sumIpsAngket = Object.values(finalAngketIps).reduce((a, b) => a + Number(b), 0);
+                const pctIpaAngket = (sumIpaAngket / 60) * 100;
+                const pctIpsAngket = (sumIpsAngket / 60) * 100;
+
+                let sumIpaGaya = 0;
+                let sumIpsGaya = 0;
+                ANGKET_GAYA_BELAJAR.forEach((g) => {
+                    const score = Number(finalGayaBelajar[g.id]) || 2;
+                    if (g.category === "IPA") sumIpaGaya += score;
+                    else sumIpsGaya += score;
+                });
+                const pctIpaGaya = (sumIpaGaya / 20) * 100;
+                const pctIpsGaya = (sumIpsGaya / 20) * 100;
+
+                let careerIpaCount = 0;
+                let careerIpsCount = 0;
+                finalCareers.forEach((cId) => {
+                    const prof = PROFESI_LIST.find(p => p.id === cId);
+                    if (prof) {
+                        if (prof.category === "IPA") careerIpaCount += 1;
+                        if (prof.category === "IPS") careerIpsCount += 1;
+                    }
+                });
+
+                const weightUjianIpa = (scoreIpaUjian / 20) * 35;
+                const weightUjianIps = (scoreIpsUjian / 20) * 35;
+
+                const weightAngketIpa = (sumIpaAngket / 60) * 40;
+                const weightAngketIps = (sumIpsAngket / 60) * 40;
+
+                const weightGayaIpa = (sumIpaGaya / 20) * 15;
+                const weightGayaIps = (sumIpsGaya / 20) * 15;
+
+                const weightCareerIpa = (careerIpaCount / 3) * 10;
+                const weightCareerIps = (careerIpsCount / 3) * 10;
+
+                const totalIpa = weightUjianIpa + weightAngketIpa + weightGayaIpa + weightCareerIpa;
+                const totalIps = weightUjianIps + weightAngketIps + weightGayaIps + weightCareerIps;
+
+                let recommendation = "Fleksibel / Seimbang";
+                let reason = "";
+
+                if (totalIpa > totalIps + 4) {
+                    recommendation = "MIPA (Matematika dan Ilmu Pengetahuan Alam)";
+                    reason = `Analisis sistem mendeteksi minat eksakta, kemampuan analisis numerik Anda yang kuat di ujian sains (${scoreIpaUjian}/20), serta kecenderungan gaya belajar sistematis/prosedural yang dominan mendukung Anda untuk sukses di rumpun MIPA.`;
+                } else if (totalIps > totalIpa + 4) {
+                    recommendation = "IPS (Ilmu Pengetahuan Sosial)";
+                    reason = `Kecerdasan inter personal, kecintaan Anda terhadap analisis fenomena sosial, minat wirausaha yang tinggi, serta pemahaman materi humaniora yang sangat baik di ujian sosial (${scoreIpsUjian}/20) menunjukkan potensi optimal Anda berada di rumpun IPS.`;
+                } else {
+                    recommendation = "MIPA atau IPS (Seimbang)";
+                    reason = `Hasil asesmen Anda menunjukkan keseimbangan potensi yang luar biasa antara penalaran sains/eksakta (${totalIpa.toFixed(1)}%) dan dinamika ilmu sosial/humaniora (${totalIps.toFixed(1)}%). Anda memiliki fleksibilitas untuk sukses di kedua jurusan tersebut berdasarkan kenyamanan karir pilihan Anda.`;
+                }
+
+                return {
+                    scoreIpaUjian,
+                    scoreIpsUjian,
+                    pctIpaAngket,
+                    pctIpsAngket,
+                    pctIpaGaya,
+                    pctIpsGaya,
+                    careerIpaCount,
+                    careerIpsCount,
+                    totalIpa,
+                    totalIps,
+                    recommendation,
+                    reason,
+                    timestamp: new Date().toISOString()
+                };
+            };
+
+            // Start Assessment Action
+            const handleStart = () => {
+                if (!selectedName) {
+                    showAlert("Nama Belum Terpilih", "Silakan pilih Nama Siswa terlebih dahulu sebelum memulai sesi.");
+                    return;
+                }
+                
+                const initAngketIpa = {};
+                ANGKET_IPA.forEach((_, idx) => initAngketIpa[idx + 1] = 2);
+                const initAngketIps = {};
+                ANGKET_IPS.forEach((_, idx) => initAngketIps[idx + 1] = 2);
+                const initGaya = {};
+                ANGKET_GAYA_BELAJAR.forEach((g) => initGaya[g.id] = 2);
+
+                setAngketIpaAnswers(initAngketIpa);
+                setAngketIpsAnswers(initAngketIps);
+                setGayaBelajarAnswers(initGaya);
+                
+                setUjianAnswers({});
+                setSelectedCareers([]);
+                setOtherCareer('');
+                setStep(0);
+                setUjianPage(0);
+                setScreen('assessment');
+            };
+
+            // Alur Tombol Navigasi Ujian: Cari apakah ada soal yang terlewat
+            const handleNextFromUjian = () => {
+                const unanswered = SOAL_UJIAN.filter(soal => !ujianAnswers[soal.id]);
+                
+                if (unanswered.length > 0) {
+                    const firstUnanswered = unanswered[0];
+                    const targetPage = Math.floor((firstUnanswered.id - 1) / 5);
+                    setUjianPage(targetPage);
+                    
+                    showAlert(
+                        "Soal Ujian Belum Lengkap", 
+                        `Terdapat ${unanswered.length} soal akademik yang terlewat belum terjawab. Kami telah mengembalikan Anda ke halaman Soal Nomor ${firstUnanswered.id} untuk dilengkapi terlebih dahulu.`
+                    );
+                } else {
+                    setStep(2);
+                }
+            };
+
+            // Submit Answers to cloud
+            const handleSubmit = async () => {
+                if (selectedCareers.length < 1) {
+                    showAlert("Pilihan Karir Kosong", "Silakan pilih minimal 1 jenis profesi karir impian Anda.");
+                    return;
+                }
+
+                const resultsObj = calculateResults(
+                    ujianAnswers,
+                    angketIpaAnswers,
+                    angketIpsAnswers,
+                    gayaBelajarAnswers,
+                    selectedCareers
+                );
+
+                const finalPayload = {
+                    nama: selectedName,
+                    kelas: selectedClass,
+                    results: resultsObj,
+                    details: {
+                        ujianAnswers,
+                        angketIpaAnswers,
+                        angketIpsAnswers,
+                        gayaBelajarAnswers,
+                        selectedCareers,
+                        otherCareer
+                    }
+                };
+
+                setActiveResult(finalPayload);
+
+                if (user) {
+                    try {
+                        const pathCol = collection(db, 'artifacts', appId, 'public', 'data', 'submissions');
+                        await addDoc(pathCol, finalPayload);
+                    } catch (err) {
+                        console.error("Firestore submit error: ", err);
+                    }
+                }
+
+                confetti({
+                    particleCount: 150,
+                    spread: 80,
+                    origin: { y: 0.6 }
+                });
+
+                setScreen('result');
+            };
+
+            // PDF Download Engine (Client-side HTML-to-PDF Generator)
+            const handleDownloadPDF = (dataToPrint) => {
+                if (!dataToPrint) return;
+
+                const element = document.createElement("div");
+                element.className = "p-10 bg-white text-slate-800 space-y-6";
+                element.style.fontFamily = "'Plus Jakarta Sans', sans-serif";
+                
+                // Construct a beautiful print-ready official report
+                element.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 4px solid #2563eb; padding-bottom: 16px;">
+                        <img src="https://iili.io/FsLlXA7.png" style="height: 70px; width: 70px; object-fit: contain;" />
+                        <div style="text-align: right;">
+                            <h2 style="font-size: 18px; font-weight: 800; color: #1e3a8a; margin: 0;">SMA MALIKA ISLAMIC BOARDING SCHOOL</h2>
+                            <p style="font-size: 10px; color: #64748b; margin: 2px 0 0 0;">Lembar Hasil Resmi Penjurusan & Angket Minat Siswa Kelas XI</p>
+                            <p style="font-size: 9px; color: #94a3b8; margin: 1px 0 0 0;">Tahun Ajaran 2026/2027</p>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                            <tr>
+                                <td style="width: 25%; font-weight: bold; color: #475569; padding: 4px 0;">Nama Lengkap</td>
+                                <td style="width: 5%; color: #475569;">:</td>
+                                <td style="font-weight: bold; color: #1e293b; font-size: 13px;">${dataToPrint.nama}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold; color: #475569; padding: 4px 0;">Kelompok Kelas</td>
+                                <td>:</td>
+                                <td style="color: #334155;">${dataToPrint.kelas}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold; color: #475569; padding: 4px 0;">Tanggal Tes</td>
+                                <td>:</td>
+                                <td style="color: #334155;">${new Date(dataToPrint.results?.timestamp || Date.now()).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="margin-top: 24px; padding: 16px; background-color: #eff6ff; border-left: 5px solid #2563eb; border-radius: 8px;">
+                        <span style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #1e40af; letter-spacing: 0.5px;">Rekomendasi Utama Penjurusan</span>
+                        <h3 style="font-size: 18px; font-weight: 800; color: #1e3a8a; margin: 4px 0 8px 0;">${dataToPrint.results?.recommendation}</h3>
+                        <p style="font-size: 11px; color: #334155; line-height: 1.6; margin: 0;">${dataToPrint.results?.reason}</p>
+                    </div>
+
+                    <div style="margin-top: 24px;">
+                        <h4 style="font-size: 12px; font-weight: bold; color: #1e293b; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">RINCIAN ASESMEN & KOMPETENSI</h4>
+                        <table style="width: 100%; font-size: 11px; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="background-color: #f8fafc;">
+                                    <th style="padding: 8px; border: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Dimensi Penilaian</th>
+                                    <th style="padding: 8px; border: 1px solid #e2e8f0; font-weight: bold; color: #2563eb; text-align: center;">Skor Bidang IPA</th>
+                                    <th style="padding: 8px; border: 1px solid #e2e8f0; font-weight: bold; color: #ec4899; text-align: center;">Skor Bidang IPS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight: bold; color: #334155;">1. Ujian Kognitif Akademik</td>
+                                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold;">${dataToPrint.results?.scoreIpaUjian} / 20 Soal</td>
+                                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold;">${dataToPrint.results?.scoreipsUjian || dataToPrint.results?.scoreIpsUjian} / 20 Soal</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight: bold; color: #334155;">2. Angket Minat Siswa</td>
+                                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold; color: #2563eb;">${dataToPrint.results?.pctIpaAngket?.toFixed(1)}%</td>
+                                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold; color: #ec4899;">${dataToPrint.results?.pctIpsAngket?.toFixed(1)}%</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight: bold; color: #334155;">3. Preferensi Gaya Belajar</td>
+                                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold;">${dataToPrint.results?.pctIpaGaya?.toFixed(1)}%</td>
+                                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold;">${dataToPrint.results?.pctIpsGaya?.toFixed(1)}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="margin-top: 24px; padding: 12px; background-color: #fafafa; border: 1px solid #e2e8f0; border-radius: 8px;">
+                        <span style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">Pilihan Karir yang Diminati</span>
+                        <p style="font-size: 12px; font-weight: bold; color: #1e293b; margin: 4px 0 0 0;">
+                            ${dataToPrint.details?.selectedCareers?.join(", ") || "Belum ada karir"} 
+                            ${dataToPrint.details?.otherCareer ? `(Karir lain: ${dataToPrint.details.otherCareer})` : ""}
+                        </p>
+                    </div>
+
+                    <div style="margin-top: 60px; display: flex; justify-content: space-between; font-size: 11px; text-align: center;">
+                        <div style="width: 40%;">
+                            <p style="margin-bottom: 50px;">Siswa Bersangkutan,</p>
+                            <p style="font-weight: bold; text-decoration: underline;">${dataToPrint.nama}</p>
+                        </div>
+                        <div style="width: 45%;">
+                            <p>Tangerang Selatan, ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            <p style="margin-bottom: 50px;">Kepala SMA Malika,</p>
+                            <p style="font-weight: bold; text-decoration: underline;">Ustadz H. Sahroni, S.Pd.I</p>
+                        </div>
+                    </div>
+                `;
+
+                // Set Options for html2pdf conversion
+                const opt = {
+                    margin:       0.5,
+                    filename:     `Hasil_Penjurusan_Malika_${dataToPrint.nama.replace(/\s+/g, '_')}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(element).save();
+            };
+
+            // CSV Export function for Spreadsheets
+            const handleExportCSV = () => {
+                if (allResults.length === 0) {
+                    showAlert("Data Kosong", "Belum ada respon siswa yang tersimpan di sistem.");
+                    return;
+                }
+
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "No,Nama Siswa,Kelompok Kelas,Skor Ujian IPA (Max 20),Skor Ujian IPS (Max 20),Minat IPA (%),Minat IPS (%),Gaya Belajar IPA (%),Gaya Belajar IPS (%),Pilihan Karir,Rekomendasi Jurusan,Waktu Submit\n";
+
+                allResults.forEach((row, index) => {
+                    const rowData = [
+                        index + 1,
+                        `"${row.nama}"`,
+                        `"${row.kelas}"`,
+                        row.results?.scoreIpaUjian || 0,
+                        row.results?.scoreIpsUjian || 0,
+                        row.results?.pctIpaAngket?.toFixed(1) || 0,
+                        row.results?.pctIpsAngket?.toFixed(1) || 0,
+                        row.results?.pctIpaGaya?.toFixed(1) || 0,
+                        row.results?.pctIpsGaya?.toFixed(1) || 0,
+                        `"${row.details?.selectedCareers?.join(', ') || ''}"`,
+                        `"${row.results?.recommendation || ''}"`,
+                        row.results?.timestamp || ''
+                    ];
+                    csvContent += rowData.join(",") + "\n";
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `Penjurusan_SMA_Malika_${new Date().toISOString().slice(0, 10)}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            // Fast Dummy Data Generator for Teacher Testing
+            const handleGenerateMockData = () => {
+                showConfirm(
+                    "Konfirmasi Data Simulasi",
+                    "Apakah Anda yakin ingin menghasilkan 10 data simulasi acak siswa untuk kebutuhan uji visualisasi spreadsheet?",
+                    async () => {
+                        setModalConfig(null);
+                        const sampleClasses = ["XI IPA/IPS - Putra", "XI IPA/IPS - Putri"];
+                        
+                        for (let i = 0; i < 10; i++) {
+                            const randomClass = sampleClasses[Math.floor(Math.random() * 2)];
+                            const list = DATABASE_SISWA[randomClass];
+                            const randomName = list[Math.floor(Math.random() * list.length)] + ` (Simulasi-${i+1})`;
+                            
+                            const mockUjian = {};
+                            SOAL_UJIAN.forEach(s => {
+                                mockUjian[s.id] = ["A", "B", "C", "D", "E"][Math.floor(Math.random() * 5)];
+                            });
+
+                            const mockAngketIpa = {};
+                            ANGKET_IPA.forEach((_, idx) => mockAngketIpa[idx + 1] = Math.floor(Math.random() * 4) + 1);
+
+                            const mockAngketIps = {};
+                            ANGKET_IPS.forEach((_, idx) => mockAngketIps[idx + 1] = Math.floor(Math.random() * 4) + 1);
+
+                            const mockGaya = {};
+                            ANGKET_GAYA_BELAJAR.forEach(g => mockGaya[g.id] = Math.floor(Math.random() * 4) + 1);
+
+                            const shuffledCareers = [...PROFESI_LIST].sort(() => 0.5 - Math.random()).slice(0, 3).map(p => p.id);
+
+                            const resultsObj = calculateResults(mockUjian, mockAngketIpa, mockAngketIps, mockGaya, shuffledCareers);
+
+                            const mockPayload = {
+                                nama: randomName,
+                                kelas: randomClass,
+                                results: resultsObj,
+                                details: {
+                                    ujianAnswers: mockUjian,
+                                    angketIpaAnswers: mockAngketIpa,
+                                    angketIpsAnswers: mockAngketIps,
+                                    gayaBelajarAnswers: mockGaya,
+                                    selectedCareers: shuffledCareers,
+                                    otherCareer: ''
+                                }
+                            };
+
+                            if (user) {
+                                const pathCol = collection(db, 'artifacts', appId, 'public', 'data', 'submissions');
+                                await addDoc(pathCol, mockPayload);
+                            }
+                        }
+                        showAlert("Generasi Selesai", "Berhasil menyinkronkan 10 data simulasi baru ke server database.");
+                    }
+                );
+            };
+
+            return (
+                <div className="flex flex-col flex-grow relative">
+                    
+                    {/* CUSTOM NOTIFICATION MODAL SYSTEM */}
+                    {modalConfig && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-fadeIn">
+                            <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 space-y-4 animate-scaleUp">
+                                <div className="flex items-center gap-3 text-blue-600">
+                                    <div className="bg-blue-50 p-2.5 rounded-full">
+                                        <i className="fa-solid fa-circle-info text-xl"></i>
+                                    </div>
+                                    <h4 className="font-bold text-slate-900 text-lg">{modalConfig.title}</h4>
+                                </div>
+                                <p className="text-slate-600 text-sm leading-relaxed">{modalConfig.message}</p>
+                                <div className="flex justify-end gap-2 pt-2">
+                                    {modalConfig.showCancel && (
+                                        <button 
+                                            onClick={modalConfig.onCancel}
+                                            className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                                        >
+                                            {modalConfig.cancelText || "Batal"}
+                                        </button>
+                                    )}
+                                    <button 
+                                        onClick={modalConfig.onConfirm}
+                                        className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow transition-all"
+                                    >
+                                        {modalConfig.confirmText || "Mengerti"}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* TOP HERO HEADER */}
+                    <header className="bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 text-white shadow-md">
+                        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <div className="flex items-center gap-4">
+                                <img 
+                                    src="https://iili.io/FsLlXA7.png" 
+                                    alt="Logo SMA Malika" 
+                                    className="h-16 w-16 object-contain bg-white rounded-full p-1 shadow-sm"
+                                    onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=MBS'; }}
+                                />
+                                <div>
+                                    <h1 className="text-xl sm:text-2xl font-black tracking-tight">SMA MALIKA</h1>
+                                    <p className="text-xs sm:text-sm text-blue-100 font-semibold tracking-wide uppercase">ISLAMIC BOARDING SCHOOL</p>
+                                    <p className="text-[10px] text-blue-200">Sistem Pintar Penjurusan & Angket Minat v2.0</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                {screen !== 'admin' ? (
+                                    <button 
+                                        onClick={() => {
+                                            setScreen('admin');
+                                            setIsAdminAuthenticated(false);
+                                            setAdminPassword('');
+                                            setAdminError('');
+                                        }}
+                                        className="bg-white/10 hover:bg-white/20 text-white font-semibold text-xs py-2 px-4 rounded-full transition-all flex items-center gap-2 border border-white/20 shadow-sm"
+                                    >
+                                        <i className="fa-solid fa-user-tie"></i>
+                                        Portal Guru / Admin
+                                    </button>
+                                ) : (
+                                    <button 
+                                        onClick={() => setScreen('login')}
+                                        className="bg-white/15 hover:bg-white/25 text-white font-semibold text-xs py-2 px-4 rounded-full transition-all flex items-center gap-2"
+                                    >
+                                        <i className="fa-solid fa-home"></i>
+                                        Kembali ke Beranda
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* MAIN CONTAINER */}
+                    <main className="flex-grow max-w-7xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 flex flex-col justify-start">
+                        {screen === 'login' && (
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center py-4">
+                                {/* Left Info Banner */}
+                                <div className="lg:col-span-7 space-y-6">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold">
+                                        <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
+                                        Tahun Pelajaran 2026/2027
+                                    </div>
+                                    <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 leading-tight">
+                                        Menemukan Potensi <br className="hidden sm:inline" />
+                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Masa Depan Terbaikmu</span>
+                                    </h2>
+                                    <p className="text-slate-600 leading-relaxed max-w-xl text-sm sm:text-base">
+                                        Selamat datang di portal resmi penentuan peminatan kelas XI SMA Malika Islamic Boarding School. Sistem ini memadukan Ujian Penjurusan IPA IPS dan Angket Minat, serta Kecenderungan Gaya Belajar untuk memberikan rekomendasi yang objektif dan transparan.
+                                    </p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                                        <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100 flex gap-3 items-start">
+                                            <div className="bg-blue-50 text-blue-600 p-3 rounded-lg"><i className="fa-solid fa-brain"></i></div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-800 text-sm">40 Soal Akademik</h4>
+                                                <p className="text-xs text-slate-500 mt-1">Mengukur daya penalaran Sains & Sosial secara komprehensif.</p>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100 flex gap-3 items-start">
+                                            <div className="bg-emerald-50 text-emerald-600 p-3 rounded-lg"><i className="fa-solid fa-heart"></i></div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-800 text-sm">40 Pernyataan Minat</h4>
+                                                <p className="text-xs text-slate-500 mt-1">Mengidentifikasi preferensi hobi, aktivitas, & cita-cita karir.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Right Login Form Card */}
+                                <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100">
+                                    <h3 className="text-xl font-bold text-slate-900 mb-2">Mulai Asesmen Siswa</h3>
+                                    <p className="text-xs text-slate-500 mb-6">Pilih identitas diri dengan benar untuk memulai ujian dan pengisian angket minat.</p>
+                                    
+                                    <div className="space-y-5">
+                                        {/* Class Selection */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Pilih Kelompok Kelas</label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <button 
+                                                    onClick={() => { setSelectedClass('XI IPA/IPS - Putra'); setSelectedName(''); }}
+                                                    className={`py-3 px-4 rounded-xl text-sm font-bold border transition-all flex items-center justify-center gap-2 ${selectedClass === 'XI IPA/IPS - Putra' ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}
+                                                >
+                                                    <i className="fa-solid fa-mars text-blue-500"></i>
+                                                    Kelas Putra
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setSelectedClass('XI IPA/IPS - Putri'); setSelectedName(''); }}
+                                                    className={`py-3 px-4 rounded-xl text-sm font-bold border transition-all flex items-center justify-center gap-2 ${selectedClass === 'XI IPA/IPS - Putri' ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}
+                                                >
+                                                    <i className="fa-solid fa-venus text-pink-500"></i>
+                                                    Kelas Putri
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Name Search Dropdown */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Cari & Pilih Nama Anda</label>
+                                            <div className="relative">
+                                                <select 
+                                                    value={selectedName}
+                                                    onChange={(e) => setSelectedName(e.target.value)}
+                                                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-3 px-4 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm font-medium transition-all appearance-none"
+                                                >
+                                                    <option value="">-- Cari Nama Anda --</option>
+                                                    {studentsList.map((std, idx) => (
+                                                        <option key={idx} value={std}>{std}</option>
+                                                    ))}
+                                                </select>
+                                                <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none">
+                                                    <i className="fa-solid fa-chevron-down text-xs"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-2">
+                                            <button 
+                                                onClick={handleStart}
+                                                disabled={!selectedName}
+                                                className={`w-full py-4 rounded-xl text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 ${selectedName ? 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:shadow-lg hover:from-blue-700 hover:to-cyan-600 transform hover:-translate-y-0.5' : 'bg-slate-300 cursor-not-allowed'}`}
+                                            >
+                                                Mulai Asesmen Sekarang
+                                                <i className="fa-solid fa-arrow-right"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-6 pt-6 border-t border-slate-100 text-center">
+                                        <p className="text-[11px] text-slate-400">Pastikan koneksi internet stabil selama proses pengerjaan ujian & angket.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {screen === 'assessment' && (
+                            <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden flex flex-col md:flex-row min-h-[550px]">
+                                {/* Left Sidebar Navigation / Progress indicator */}
+                                <div className="md:w-1/4 bg-slate-50 border-r border-slate-100 p-6 flex flex-col justify-between">
+                                    <div className="space-y-6">
+                                        <div>
+                                            <div className="text-xs text-slate-400 uppercase tracking-wider font-bold mb-1">Peserta Aktif</div>
+                                            <div className="font-bold text-slate-900 truncate flex items-center gap-2">
+                                                <span className={`h-2.5 w-2.5 rounded-full ${selectedClass.includes('Putra') ? 'bg-blue-500' : 'bg-pink-500'}`}></span>
+                                                {selectedName}
+                                            </div>
+                                            <div className="text-xs text-slate-500 mt-0.5">{selectedClass}</div>
+                                        </div>
+
+                                        {/* STEPS LIST */}
+                                        <div className="space-y-2">
+                                            {[
+                                                { label: "Petunjuk & Aturan", icon: "fa-info-circle" },
+                                                { label: "Ujian Akademik", icon: "fa-laptop-code" },
+                                                { label: "Angket Minat", icon: "fa-heart" },
+                                                { label: "Gaya Belajar", icon: "fa-gears" },
+                                                { label: "Aspirasi Karir", icon: "fa-compass" },
+                                                { label: "Review & Kirim", icon: "fa-check-double" }
+                                            ].map((s, idx) => (
+                                                <div 
+                                                    key={idx}
+                                                    className={`flex items-center gap-3 p-3 rounded-xl transition-all ${step === idx ? 'bg-blue-600 text-white shadow-sm font-semibold' : 'text-slate-500'}`}
+                                                >
+                                                    <span className="w-5 text-center"><i className={`fa-solid ${s.icon}`}></i></span>
+                                                    <span className="text-xs">{s.label}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-6 border-t border-slate-200/60 text-[11px] text-slate-400">
+                                        SMA Malika IBS @ 2026
+                                    </div>
+                                </div>
+
+                                {/* Right Content Area */}
+                                <div className="flex-grow p-6 sm:p-8 flex flex-col justify-between">
+                                    {/* STEP 0: INSTRUCTIONS */}
+                                    {step === 0 && (
+                                        <div className="space-y-6 flex-grow">
+                                            <div className="border-b border-slate-100 pb-4">
+                                                <h3 className="text-xl font-bold text-slate-900">Petunjuk Pengisian Asesmen</h3>
+                                                <p className="text-xs text-slate-500">Mohon baca instruksi di bawah ini dengan saksama sebelum memulai.</p>
+                                            </div>
+
+                                            <div className="space-y-4 text-sm text-slate-600 leading-relaxed">
+                                                <div className="flex gap-3 items-start bg-blue-50 p-4 rounded-xl border border-blue-100/60">
+                                                    <i className="fa-solid fa-graduation-cap text-blue-600 mt-1"></i>
+                                                    <p>Asesmen ini terdiri dari **Ujian Penjurusan** (40 soal pilihan ganda) dan **Angket Minat & Gaya Belajar** (40 poin pernyataan).</p>
+                                                </div>
+                                                <div className="flex gap-3 items-start bg-amber-50 p-4 rounded-xl border border-amber-100/60">
+                                                    <i className="fa-solid fa-clock text-amber-600 mt-1"></i>
+                                                    <p>Pengerjaan ujian akademik berfokus pada kecakapan kognitif Anda. Sistem pintar kami akan otomatis mengecek kelengkapan jawaban Anda saat selesai.</p>
+                                                </div>
+                                                
+                                                {/* SKALA PENILAIAN */}
+                                                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-2">
+                                                    <h4 className="font-bold text-xs text-slate-700 uppercase tracking-wider">Skala Penilaian Angket Minat (1-4)</h4>
+                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                                                        {SKALA_LIKERT.map((l) => (
+                                                            <div key={l.value} className="bg-white p-2.5 rounded-xl border border-slate-200 text-center space-y-0.5">
+                                                                <div className="text-xs font-bold text-slate-800">{l.value}</div>
+                                                                <div className="text-[10px] text-slate-500 font-semibold">{l.label}</div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-4">
+                                                <button 
+                                                    onClick={() => setStep(1)}
+                                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2"
+                                                >
+                                                    Saya Siap, Mulai Ujian Akademik
+                                                    <i className="fa-solid fa-arrow-right"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* STEP 1: UJIAN AKADEMIK */}
+                                    {step === 1 && (
+                                        <div className="space-y-6 flex-grow">
+                                            <div className="border-b border-slate-100 pb-4 flex justify-between items-center">
+                                                <div>
+                                                    <h3 className="text-xl font-bold text-slate-900">Ujian Akademik Penjurusan</h3>
+                                                    <p className="text-xs text-slate-500">Soal {ujianPage * 5 + 1} s.d. {Math.min((ujianPage + 1) * 5, 40)} dari 40 Soal</p>
+                                                </div>
+                                                <span className="bg-slate-100 text-slate-600 text-xs px-3 py-1.5 rounded-full font-bold">
+                                                    Terjawab: {Object.keys(ujianAnswers).length} / 40
+                                                </span>
+                                            </div>
+
+                                            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                                <div 
+                                                    className="bg-blue-600 h-full transition-all duration-300"
+                                                    style={{ width: `${(Object.keys(ujianAnswers).length / 40) * 100}%` }}
+                                                ></div>
+                                            </div>
+
+                                            <div className="space-y-6 overflow-y-auto max-h-[420px] pr-2 animate-fadeIn">
+                                                {SOAL_UJIAN.slice(ujianPage * 5, (ujianPage + 1) * 5).map((soal) => (
+                                                    <div key={soal.id} className="p-4 bg-slate-50 hover:bg-slate-100/60 border border-slate-200/60 rounded-xl transition-all">
+                                                        <div className="flex gap-2 mb-3">
+                                                            <span className="font-bold text-sm text-blue-600">{soal.id}.</span>
+                                                            <p className="text-sm text-slate-800 font-semibold whitespace-pre-line">{soal.text}</p>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-6">
+                                                            {soal.options.map((opt, oIdx) => {
+                                                                const letter = opt.charAt(0);
+                                                                const isSelected = ujianAnswers[soal.id] === letter;
+                                                                return (
+                                                                    <button
+                                                                        key={oIdx}
+                                                                        onClick={() => {
+                                                                            setUjianAnswers({
+                                                                                ...ujianAnswers,
+                                                                                [soal.id]: letter
+                                                                            });
+                                                                        }}
+                                                                        className={`text-left p-3 rounded-lg text-xs border transition-all flex items-center gap-2 ${isSelected ? 'bg-blue-600 text-white border-blue-600 font-bold shadow-sm' : 'bg-white border-slate-200 hover:border-blue-400'}`}
+                                                                    >
+                                                                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${isSelected ? 'bg-white text-blue-600' : 'bg-slate-100 text-slate-600'}`}>
+                                                                            {letter}
+                                                                        </span>
+                                                                        {opt.substring(3)}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                                                <button
+                                                    onClick={() => {
+                                                        if (ujianPage > 0) setUjianPage(ujianPage - 1);
+                                                    }}
+                                                    disabled={ujianPage === 0}
+                                                    className={`px-4 py-2 text-xs font-semibold rounded-lg flex items-center gap-2 ${ujianPage === 0 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-600 bg-slate-100 hover:bg-slate-200'}`}
+                                                >
+                                                    <i className="fa-solid fa-arrow-left"></i> Sebelumnya
+                                                </button>
+
+                                                {ujianPage < 7 ? (
+                                                    <button
+                                                        onClick={() => setUjianPage(ujianPage + 1)}
+                                                        className="px-4 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                                                    >
+                                                        Berikutnya <i className="fa-solid fa-arrow-right"></i>
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={handleNextFromUjian}
+                                                        className="px-6 py-2 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2 shadow"
+                                                    >
+                                                        Lanjut ke Angket Minat <i className="fa-solid fa-forward"></i>
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* STEP 2: ANGKET MINAT (1-4) */}
+                                    {step === 2 && (
+                                        <div className="space-y-6 flex-grow">
+                                            <div className="border-b border-slate-100 pb-4">
+                                                <h3 className="text-xl font-bold text-slate-900">Angket Minat Eksakta & Sosial</h3>
+                                                <p className="text-xs text-slate-500">Berikan penilaian kecocokan diri Anda dari skala 1 (Tidak Sesuai) hingga 4 (Sangat Sesuai).</p>
+                                            </div>
+
+                                            <div className="space-y-6 overflow-y-auto max-h-[400px] pr-2">
+                                                <div className="space-y-4">
+                                                    <h4 className="font-bold text-sm text-blue-600 border-l-4 border-blue-500 pl-2">A. Minat Bidang Sains / IPA</h4>
+                                                    {ANGKET_IPA.map((p, idx) => {
+                                                        const num = idx + 1;
+                                                        return (
+                                                            <div key={idx} className="p-3 bg-slate-50 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-slate-100">
+                                                                <span className="text-xs text-slate-700 font-medium md:max-w-md">{num}. {p}</span>
+                                                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 w-full md:w-auto">
+                                                                    {SKALA_LIKERT.map((likert) => {
+                                                                        const isSelected = angketIpaAnswers[num] === likert.value;
+                                                                        return (
+                                                                            <button
+                                                                                key={likert.value}
+                                                                                onClick={() => setAngketIpaAnswers({...angketIpaAnswers, [num]: likert.value})}
+                                                                                className={`py-2 px-3 rounded-xl text-[11px] font-bold border transition-all text-center flex flex-col items-center justify-center gap-0.5 ${isSelected ? 'bg-blue-600 border-blue-600 text-white shadow-md transform scale-105 font-extrabold' : likert.color}`}
+                                                                            >
+                                                                                <span className="text-xs">{likert.value}</span>
+                                                                                <span className="text-[10px] tracking-tight">{likert.label}</span>
+                                                                            </button>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                                <div className="space-y-4 pt-4">
+                                                    <h4 className="font-bold text-sm text-pink-600 border-l-4 border-pink-500 pl-2">B. Minat Bidang Sosial / IPS</h4>
+                                                    {ANGKET_IPS.map((p, idx) => {
+                                                        const num = idx + 1;
+                                                        return (
+                                                            <div key={idx} className="p-3 bg-slate-50 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-slate-100">
+                                                                <span className="text-xs text-slate-700 font-medium md:max-w-md">{num}. {p}</span>
+                                                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 w-full md:w-auto">
+                                                                    {SKALA_LIKERT.map((likert) => {
+                                                                        const isSelected = angketIpsAnswers[num] === likert.value;
+                                                                        return (
+                                                                            <button
+                                                                                key={likert.value}
+                                                                                onClick={() => setAngketIpsAnswers({...angketIpsAnswers, [num]: likert.value})}
+                                                                                className={`py-2 px-3 rounded-xl text-[11px] font-bold border transition-all text-center flex flex-col items-center justify-center gap-0.5 ${isSelected ? 'bg-pink-600 border-pink-600 text-white shadow-md transform scale-105 font-extrabold' : likert.color}`}
+                                                                            >
+                                                                                <span className="text-xs">{likert.value}</span>
+                                                                                <span className="text-[10px] tracking-tight">{likert.label}</span>
+                                                                            </button>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                                                <button
+                                                    onClick={() => setStep(1)}
+                                                    className="px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200"
+                                                >
+                                                    <i className="fa-solid fa-arrow-left"></i> Kembali ke Ujian
+                                                </button>
+                                                <button
+                                                    onClick={() => setStep(3)}
+                                                    className="px-6 py-2 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                                                >
+                                                    Lanjut ke Gaya Belajar <i className="fa-solid fa-arrow-right"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* STEP 3: GAYA BELAJAR */}
+                                    {step === 3 && (
+                                        <div className="space-y-6 flex-grow">
+                                            <div className="border-b border-slate-100 pb-4">
+                                                <h3 className="text-xl font-bold text-slate-900">Gaya Belajar & Kecenderungan Berpikir</h3>
+                                                <p className="text-xs text-slate-500">Berikan penilaian sesuai kecenderungan cara belajar Anda sehari-hari.</p>
+                                            </div>
+
+                                            <div className="space-y-4 overflow-y-auto max-h-[400px] pr-2">
+                                                {ANGKET_GAYA_BELAJAR.map((item) => (
+                                                    <div key={item.id} className="p-3 bg-slate-50 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-slate-100">
+                                                        <span className="text-xs text-slate-700 font-medium md:max-w-lg">{item.id}. {item.text}</span>
+                                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 w-full md:w-auto">
+                                                            {SKALA_LIKERT.map((likert) => {
+                                                                const isSelected = gayaBelajarAnswers[item.id] === likert.value;
+                                                                return (
+                                                                    <button
+                                                                        key={likert.value}
+                                                                        onClick={() => setGayaBelajarAnswers({...gayaBelajarAnswers, [item.id]: likert.value})}
+                                                                        className={`py-2 px-3 rounded-xl text-[11px] font-bold border transition-all text-center flex flex-col items-center justify-center gap-0.5 ${isSelected ? 'bg-cyan-600 border-cyan-600 text-white shadow-md transform scale-105 font-extrabold' : likert.color}`}
+                                                                    >
+                                                                        <span className="text-xs">{likert.value}</span>
+                                                                        <span className="text-[10px] tracking-tight">{likert.label}</span>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                                                <button
+                                                    onClick={() => setStep(2)}
+                                                    className="px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200"
+                                                >
+                                                    <i className="fa-solid fa-arrow-left"></i> Kembali ke Minat
+                                                </button>
+                                                <button
+                                                    onClick={() => setStep(4)}
+                                                    className="px-6 py-2 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                                                >
+                                                    Lanjut ke Aspirasi Karir <i className="fa-solid fa-arrow-right"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* STEP 4: ASPIRASI KARIR */}
+                                    {step === 4 && (
+                                        <div className="space-y-6 flex-grow">
+                                            <div className="border-b border-slate-100 pb-4">
+                                                <h3 className="text-xl font-bold text-slate-900">Aspirasi Karir Masa Depan</h3>
+                                                <p className="text-xs text-slate-500">Pilih maksimal **3 profesi/karir** yang paling diminati oleh Anda.</p>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 overflow-y-auto max-h-[350px] pr-2">
+                                                {PROFESI_LIST.map((p) => {
+                                                    const isSelected = selectedCareers.includes(p.id);
+                                                    return (
+                                                        <button
+                                                            key={p.id}
+                                                            onClick={() => {
+                                                                if (isSelected) {
+                                                                    setSelectedCareers(selectedCareers.filter(item => item !== p.id));
+                                                                } else {
+                                                                    if (selectedCareers.length >= 3) {
+                                                                        showAlert("Batas Maksimal", "Anda hanya dapat memilih maksimal 3 profesi impian.");
+                                                                        return;
+                                                                    }
+                                                                    setSelectedCareers([...selectedCareers, p.id]);
+                                                                }
+                                                            }}
+                                                            className={`p-4 rounded-xl border text-left transition-all relative ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-700 font-bold shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                                                        >
+                                                            <div className="text-xs mb-1">{p.label}</div>
+                                                            <div className={`text-[10px] uppercase font-semibold tracking-wider ${p.category === 'IPA' ? 'text-blue-500' : p.category === 'IPS' ? 'text-pink-500' : 'text-slate-400'}`}>
+                                                                {p.category}
+                                                            </div>
+                                                            {isSelected && (
+                                                                <span className="absolute top-2 right-2 text-blue-600 text-xs">
+                                                                    <i className="fa-solid fa-circle-check"></i>
+                                                                </span>
+                                                            )}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Karir / Profesi Lainnya (Opsional)</label>
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="Contoh: Desainer Grafis, Chef Profesional, dsb."
+                                                    value={otherCareer}
+                                                    onChange={(e) => setOtherCareer(e.target.value)}
+                                                    className="w-full bg-white border border-slate-200 text-slate-800 py-3 px-4 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs"
+                                                />
+                                            </div>
+
+                                            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                                                <button
+                                                    onClick={() => setStep(3)}
+                                                    className="px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200"
+                                                >
+                                                    <i className="fa-solid fa-arrow-left"></i> Kembali ke Gaya Belajar
+                                                </button>
+                                                <button
+                                                    onClick={() => setStep(5)}
+                                                    disabled={selectedCareers.length === 0}
+                                                    className={`px-6 py-2 text-xs font-bold rounded-lg flex items-center gap-2 ${selectedCareers.length > 0 ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-slate-300 cursor-not-allowed text-slate-500'}`}
+                                                >
+                                                    Lanjut ke Ringkasan <i className="fa-solid fa-arrow-right"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* STEP 5: REVIEW & KIRIM */}
+                                    {step === 5 && (
+                                        <div className="space-y-6 flex-grow">
+                                            <div className="border-b border-slate-100 pb-4">
+                                                <h3 className="text-xl font-bold text-slate-900">Ringkasan Sesi Anda</h3>
+                                                <p className="text-xs text-slate-500">Semua bagian sudah terisi. Tinjau sejenak sebelum mengirim jawaban ke server.</p>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                                                    <h4 className="font-bold text-sm text-blue-800 flex items-center gap-2 mb-2">
+                                                        <i className="fa-solid fa-square-poll-vertical"></i> Ujian Akademik
+                                                    </h4>
+                                                    <p className="text-xs text-slate-600">Selesai terisi sebanyak:</p>
+                                                    <p className="text-xl font-extrabold text-blue-900 mt-1">{Object.keys(ujianAnswers).length} / 40 Soal</p>
+                                                </div>
+
+                                                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                                                    <h4 className="font-bold text-sm text-emerald-800 flex items-center gap-2 mb-2">
+                                                        <i className="fa-solid fa-chart-line"></i> Angket Minat
+                                                    </h4>
+                                                    <p className="text-xs text-slate-600">Selesai terisi sebanyak:</p>
+                                                    <p className="text-xl font-extrabold text-emerald-900 mt-1">40 Pernyataan (100%)</p>
+                                                </div>
+
+                                                <div className="p-4 bg-cyan-50 rounded-2xl border border-cyan-100 sm:col-span-2">
+                                                    <h4 className="font-bold text-sm text-cyan-800 flex items-center gap-2 mb-2">
+                                                        <i className="fa-solid fa-user-astronaut"></i> Aspirasi Karir
+                                                    </h4>
+                                                    <div className="flex flex-wrap gap-2 mt-2">
+                                                        {selectedCareers.map((c, i) => (
+                                                            <span key={i} className="bg-white px-3 py-1.5 rounded-lg text-xs font-semibold text-cyan-800 border border-cyan-200">
+                                                                {c}
+                                                            </span>
+                                                        ))}
+                                                        {otherCareer && (
+                                                            <span className="bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 border border-slate-200">
+                                                                {otherCareer}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-500 leading-relaxed">
+                                                Setelah menekan tombol **\"Kirim Jawaban Asesmen\"**, seluruh respons Anda akan dihitung secara real-time dan disinkronisasikan ke spreadsheets portal guru.
+                                            </div>
+
+                                            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                                                <button
+                                                    onClick={() => setStep(4)}
+                                                    className="px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200"
+                                                >
+                                                    <i className="fa-solid fa-arrow-left"></i> Kembali ke Karir
+                                                </button>
+                                                <button
+                                                    onClick={handleSubmit}
+                                                    className="px-8 py-3 bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-700 hover:to-green-600 text-white font-black text-sm rounded-xl shadow-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5"
+                                                >
+                                                    Kirim Jawaban Asesmen
+                                                    <i className="fa-solid fa-paper-plane"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {screen === 'result' && activeResult && (
+                            <div className="space-y-8 animate-fadeIn">
+                                {/* Success Notification */}
+                                <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white p-6 rounded-3xl shadow-md text-center max-w-2xl mx-auto">
+                                    <div className="text-4xl mb-3"><i className="fa-solid fa-circle-check"></i></div>
+                                    <h3 className="text-xl sm:text-2xl font-extrabold">Respons Berhasil Dikirim!</h3>
+                                    <p className="text-xs text-emerald-100 mt-2">Terima kasih {activeResult.nama}. Hasil asesmen Anda telah terhitung dan terekam di sistem pusat.</p>
+                                    
+                                    {/* DOWNLOAD PDF UNTUK SISWA */}
+                                    <button 
+                                        onClick={() => handleDownloadPDF(activeResult)}
+                                        className="mt-4 bg-white text-emerald-700 hover:bg-emerald-50 font-bold text-xs py-2.5 px-5 rounded-xl shadow transition-all flex items-center gap-2 mx-auto"
+                                    >
+                                        <i className="fa-solid fa-file-pdf text-sm"></i>
+                                        Unduh Lembar Hasil PDF Siswa
+                                    </button>
+                                </div>
+
+                                {/* Results Grid */}
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                                    {/* Recommendation & Details Card */}
+                                    <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 shadow-lg border border-slate-100 space-y-6">
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Analisis Rekomendasi Penjurusan</span>
+                                            <h3 className="text-2xl sm:text-3xl font-black text-blue-600 mt-1">{activeResult.results.recommendation}</h3>
+                                        </div>
+
+                                        <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                            {activeResult.results.reason}
+                                        </p>
+
+                                        {/* Quantitative Scores */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Skor Akademik IPA</span>
+                                                <div className="text-xl font-bold text-slate-800 mt-1">{activeResult.results.scoreIpaUjian} <span className="text-xs text-slate-400">/ 20</span></div>
+                                            </div>
+                                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Skor Akademik IPS</span>
+                                                <div className="text-xl font-bold text-slate-800 mt-1">{activeResult.results.scoreIpsUjian} <span className="text-xs text-slate-400">/ 20</span></div>
+                                            </div>
+                                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Minat Angket IPA</span>
+                                                <div className="text-xl font-bold text-blue-600 mt-1">{activeResult.results.pctIpaAngket.toFixed(1)}%</div>
+                                            </div>
+                                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Minat Angket IPS</span>
+                                                <div className="text-xl font-bold text-pink-600 mt-1">{activeResult.results.pctIpsAngket.toFixed(1)}%</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-center pt-2">
+                                            <button 
+                                                onClick={() => { setScreen('login'); setSelectedName(''); }}
+                                                className="px-6 py-3 bg-slate-800 text-white font-bold text-xs rounded-xl hover:bg-slate-900 transition-all shadow"
+                                            >
+                                                Selesai & Keluar Sesi
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Visual Chart Card */}
+                                    <div className="lg:col-span-5 bg-white rounded-3xl p-6 shadow-lg border border-slate-100 flex flex-col justify-center items-center">
+                                        <h4 className="font-bold text-slate-800 text-sm mb-4">Grafik Kecenderungan Potensi (%)</h4>
+                                        <div className="w-full h-64 flex justify-center items-center relative">
+                                            <div className="w-full flex gap-4 h-full items-end justify-center px-4">
+                                                <div className="flex flex-col items-center flex-grow max-w-[100px]">
+                                                    <span className="text-xs font-bold text-blue-600 mb-1">{activeResult.results.totalIpa.toFixed(1)}%</span>
+                                                    <div 
+                                                        className="w-full bg-blue-500 rounded-t-xl transition-all duration-1000 shadow-lg shadow-blue-500/10 animate-scaleUp" 
+                                                        style={{ height: `${activeResult.results.totalIpa * 1.8}px` }}
+                                                    ></div>
+                                                    <span className="text-xs font-bold text-slate-700 mt-2">MIPA / IPA</span>
+                                                </div>
+                                                <div className="flex flex-col items-center flex-grow max-w-[100px]">
+                                                    <span className="text-xs font-bold text-pink-600 mb-1">{activeResult.results.totalIps.toFixed(1)}%</span>
+                                                    <div 
+                                                        className="w-full bg-pink-500 rounded-t-xl transition-all duration-1000 shadow-lg shadow-pink-500/10 animate-scaleUp" 
+                                                        style={{ height: `${activeResult.results.totalIps * 1.8}px` }}
+                                                    ></div>
+                                                    <span className="text-xs font-bold text-slate-700 mt-2">HUMANIORA / IPS</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p className="text-[11px] text-slate-400 mt-6 text-center leading-relaxed">Persentase di atas dihitung secara berimbang berdasarkan keterpaduan antara kompetensi ujian, angket minat, gaya belajar, dan kecocokan profil karir.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {screen === 'admin' && (
+                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100 space-y-6">
+                                {!isAdminAuthenticated ? (
+                                    /* Passcode Gate */
+                                    <div className="max-w-md mx-auto py-12 text-center space-y-4">
+                                        <div className="text-5xl text-blue-600"><i className="fa-solid fa-lock"></i></div>
+                                        <h3 className="text-xl font-bold text-slate-900">Keamanan Portal Guru</h3>
+                                        <p className="text-xs text-slate-500">Masukkan kata sandi guru / admin untuk melihat seluruh data spreadsheet hasil penjurusan siswa.</p>
+                                        
+                                        <div className="pt-2 space-y-2">
+                                            <input 
+                                                type="password" 
+                                                placeholder="Sandi Admin (Gunakan: adminmalika)"
+                                                value={adminPassword}
+                                                onChange={(e) => { setAdminPassword(e.target.value); setAdminError(''); }}
+                                                className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-3 px-4 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm text-center font-bold"
+                                            />
+                                            {adminError && <p className="text-xs text-red-500 font-semibold">{adminError}</p>}
+                                            <button 
+                                                onClick={() => {
+                                                    if (adminPassword === 'adminmalika') {
+                                                        setIsAdminAuthenticated(true);
+                                                    } else {
+                                                        setAdminError('Kata sandi salah. Silakan coba lagi.');
+                                                    }
+                                                }}
+                                                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition-all shadow"
+                                            >
+                                                Masuk Portal
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    /* Dashboard Panel */
+                                    <div className="space-y-6 animate-fadeIn">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                                            <div>
+                                                <h3 className="text-xl font-bold text-slate-900">Dashboard Hasil Penjurusan Siswa (Live Feed)</h3>
+                                                <p className="text-xs text-slate-500">Menampilkan seluruh data masuk dari Firestore SMA Malika IBS secara langsung.</p>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                <button 
+                                                    onClick={handleGenerateMockData}
+                                                    className="bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center gap-2 border border-purple-200"
+                                                >
+                                                    <i className="fa-solid fa-wand-magic-sparkles"></i>
+                                                    Generate 10 Data Simulasi
+                                                </button>
+                                                <button 
+                                                    onClick={handleExportCSV}
+                                                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center gap-2 shadow-sm"
+                                                >
+                                                    <i className="fa-solid fa-file-excel"></i>
+                                                    Ekspor ke Spreadsheet (CSV)
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Statistics Row */}
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div className="p-4 bg-slate-50 border border-slate-200/50 rounded-2xl">
+                                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total Respon Siswa</span>
+                                                <p className="text-2xl font-black text-slate-800 mt-1">{allResults.length}</p>
+                                            </div>
+                                            <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+                                                <span className="text-[10px] text-blue-700 font-bold uppercase tracking-wider">Rekomendasi MIPA</span>
+                                                <p className="text-2xl font-black text-blue-800 mt-1">
+                                                    {allResults.filter(r => r.results?.recommendation?.includes('MIPA') && !r.results?.recommendation?.includes('Seimbang')).length}
+                                                </p>
+                                            </div>
+                                            <div className="p-4 bg-pink-50 border border-pink-100 rounded-2xl">
+                                                <span className="text-[10px] text-pink-700 font-bold uppercase tracking-wider">Rekomendasi IPS</span>
+                                                <p className="text-2xl font-black text-pink-800 mt-1">
+                                                    {allResults.filter(r => r.results?.recommendation?.includes('IPS') && !r.results?.recommendation?.includes('Seimbang')).length}
+                                                </p>
+                                            </div>
+                                            <div className="p-4 bg-cyan-50 border border-cyan-100 rounded-2xl">
+                                                <span className="text-[10px] text-cyan-700 font-bold uppercase tracking-wider">Fleksibel / Seimbang</span>
+                                                <p className="text-2xl font-black text-cyan-800 mt-1">
+                                                    {allResults.filter(r => r.results?.recommendation?.includes('Seimbang')).length}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Real-time Submissions Spreadsheet/Table */}
+                                        <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
+                                            <div className="overflow-x-auto">
+                                                <table className="min-w-full divide-y divide-slate-200">
+                                                    <thead className="bg-slate-50">
+                                                        <tr>
+                                                            <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">No</th>
+                                                            <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Nama Siswa</th>
+                                                            <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Kelompok Kelas</th>
+                                                            <th scope="col" className="px-4 py-3 text-center text-xs font-bold text-blue-600 uppercase">Ujian IPA</th>
+                                                            <th scope="col" className="px-4 py-3 text-center text-xs font-bold text-pink-600 uppercase">Ujian IPS</th>
+                                                            <th scope="col" className="px-4 py-3 text-center text-xs font-bold text-blue-600 uppercase">Minat IPA</th>
+                                                            <th scope="col" className="px-4 py-3 text-center text-xs font-bold text-pink-600 uppercase">Minat IPS</th>
+                                                            <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase font-semibold text-blue-700">Rekomendasi</th>
+                                                            <th scope="col" className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Aksi</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-200 text-xs">
+                                                        {allResults.length === 0 ? (
+                                                            <tr>
+                                                                <td colSpan="9" className="text-center py-8 text-slate-400 font-medium">Belum ada respon ujian atau angket yang masuk.</td>
+                                                            </tr>
+                                                        ) : (
+                                                            allResults.map((row, index) => (
+                                                                <tr key={index} className="hover:bg-slate-50">
+                                                                    <td className="px-4 py-3 text-slate-500 font-medium">{index + 1}</td>
+                                                                    <td className="px-4 py-3 font-bold text-slate-800">{row.nama}</td>
+                                                                    <td className="px-4 py-3 text-slate-500 font-medium">{row.kelas}</td>
+                                                                    <td className="px-4 py-3 text-center font-bold text-blue-600">{row.results?.scoreIpaUjian} <span className="text-[10px] text-slate-400">/20</span></td>
+                                                                    <td className="px-4 py-3 text-center font-bold text-pink-600">{row.results?.scoreIpsUjian} <span className="text-[10px] text-slate-400">/20</span></td>
+                                                                    <td className="px-4 py-3 text-center font-medium text-blue-500">{row.results?.pctIpaAngket?.toFixed(0)}%</td>
+                                                                    <td className="px-4 py-3 text-center font-medium text-pink-500">{row.results?.pctIpsAngket?.toFixed(0)}%</td>
+                                                                    <td className="px-4 py-3">
+                                                                        <span className={`inline-block px-2.5 py-1 rounded-full font-bold text-[10px] uppercase ${row.results?.recommendation?.includes('MIPA') ? 'bg-blue-100 text-blue-800' : row.results?.recommendation?.includes('IPS') ? 'bg-pink-100 text-pink-800' : 'bg-cyan-100 text-cyan-800'}`}>
+                                                                            {row.results?.recommendation?.split(' ')[0]}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-center">
+                                                                        <button 
+                                                                            onClick={() => handleDownloadPDF(row)}
+                                                                            className="bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-1 px-2.5 rounded-lg border border-blue-200/60 transition-all flex items-center gap-1 mx-auto"
+                                                                            title="Unduh Berkas PDF Resmi Siswa"
+                                                                        >
+                                                                            <i className="fa-solid fa-file-pdf"></i>
+                                                                            <span>PDF</span>
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            ))
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </main>
+
+                    {/* PLATFORM FOOTER */}
+                    <footer className="bg-slate-900 text-slate-400 text-xs py-6 mt-12 border-t border-slate-800">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+                            <div>
+                                <p className="font-bold text-slate-300">SMA Malika Islamic Boarding School</p>
+                                <p className="text-[11px] mt-0.5 text-slate-500">Mencetak Generasi Unggul Berlandaskan Nilai Islam & Sains Modern</p>
+                            </div>
+                            <div className="text-[11px] text-slate-500">
+                                Sistem Penjurusan & Angket Minat Digital © 2026. All rights reserved.
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
