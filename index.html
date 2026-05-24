@@ -191,7 +191,7 @@
         const ANGKET_GAYA_BELAJAR = [
             { id: 1, text: "Saya senang belajar dengan data, angka, dan analisis.", category: "IPA" },
             { id: 2, text: "Saya lebih mudah memahami konsep melalui diskusi dan studi kasus.", category: "IPS" },
-            { id: 3, text: "Saya suka kegiatan observasi dan eksperimen.", category: "IPA" },
+            { id: 3, text: "Saya suka kegiatan observasi and eksperimen.", category: "IPA" },
             { id: 4, text: "Saya nyaman berbicara di depan orang lain.", category: "IPS" },
             { id: 5, text: "Saya teliti terhadap detail dan proses.", category: "IPA" },
             { id: 6, text: "Saya senang menganalisis perilaku manusia atau fenomena sosial.", category: "IPS" },
@@ -225,10 +225,10 @@
             { id: "Content Creator", label: "Content Creator", category: "Lainnya" }
         ];
 
-        // --- SKALA LIKERT (1-4) ---
+        // --- SKALA LIKERT REVISI (1-4: Kurang Sesuai) ---
         const SKALA_LIKERT = [
             { value: 1, label: "Tidak Sesuai", color: "border-red-200 hover:border-red-400 text-red-700 bg-red-50/30" },
-            { value: 2, label: "Cukup Sesuai", color: "border-amber-200 hover:border-amber-400 text-amber-700 bg-amber-50/30" },
+            { value: 2, label: "Kurang Sesuai", color: "border-amber-200 hover:border-amber-400 text-amber-700 bg-amber-50/30" },
             { value: 3, label: "Sesuai", color: "border-blue-200 hover:border-blue-400 text-blue-700 bg-blue-50/30" },
             { value: 4, label: "Sangat Sesuai", color: "border-emerald-200 hover:border-emerald-400 text-emerald-700 bg-emerald-50/30" }
         ];
@@ -268,6 +268,16 @@
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'sma-malika-placement';
 
+        // --- HELPER UNTUK PENGACAKAN ARRAY (FISHER-YATES SHUFFLE) ---
+        const shuffleArray = (array) => {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        };
+
         // --- MAIN APPLICATION ---
         function App() {
             // Screen state: 'login' | 'assessment' | 'result' | 'admin'
@@ -278,12 +288,13 @@
             const [selectedName, setSelectedName] = useState('');
             const [user, setUser] = useState(null);
 
-            // Assessment Step State: 
+            // Assessment Step State
             const [step, setStep] = useState(0);
 
-            // Ujian State (Answers)
+            // Ujian State (Answers & Randomized Questions)
             const [ujianAnswers, setUjianAnswers] = useState({});
             const [ujianPage, setUjianPage] = useState(0);
+            const [randomizedQuestions, setRandomizedQuestions] = useState([]);
 
             // Angket State (Answers 1-4 for IPA, IPS)
             const [angketIpaAnswers, setAngketIpaAnswers] = useState({});
@@ -496,13 +507,26 @@
                 };
             };
 
-            // Start Assessment Action
+            // Start Assessment Action (Ditambahkan Pengacakan Soal Pintar)
             const handleStart = () => {
                 if (!selectedName) {
                     showAlert("Nama Belum Terpilih", "Silakan pilih Nama Siswa terlebih dahulu sebelum memulai sesi.");
                     return;
                 }
                 
+                // 1. Ekstrak soal IPA dan IPS secara terpisah
+                const ipaQuestions = SOAL_UJIAN.filter(q => q.type === "IPA");
+                const ipsQuestions = SOAL_UJIAN.filter(q => q.type === "IPS");
+
+                // 2. Acak masing-masing grup secara independen agar urutan tidak monoton
+                const randomizedIpa = shuffleArray(ipaQuestions);
+                const randomizedIps = shuffleArray(ipsQuestions);
+
+                // 3. Gabungkan kembali (IPA tetap di awal, IPS tetap di akhir)
+                const combinedShuffledQuestions = [...randomizedIpa, ...randomizedIps];
+                setRandomizedQuestions(combinedShuffledQuestions);
+
+                // Prepopulate default survey scores with 2 (Kurang Sesuai)
                 const initAngketIpa = {};
                 ANGKET_IPA.forEach((_, idx) => initAngketIpa[idx + 1] = 2);
                 const initAngketIps = {};
@@ -528,12 +552,14 @@
                 
                 if (unanswered.length > 0) {
                     const firstUnanswered = unanswered[0];
-                    const targetPage = Math.floor((firstUnanswered.id - 1) / 5);
+                    // Temukan di halaman berapa soal yang terlewat tersebut berada di dalam susunan randomizedQuestions saat ini
+                    const shuffledIndex = randomizedQuestions.findIndex(q => q.id === firstUnanswered.id);
+                    const targetPage = shuffledIndex !== -1 ? Math.floor(shuffledIndex / 5) : 0;
                     setUjianPage(targetPage);
                     
                     showAlert(
                         "Soal Ujian Belum Lengkap", 
-                        `Terdapat ${unanswered.length} soal akademik yang terlewat belum terjawab. Kami telah mengembalikan Anda ke halaman Soal Nomor ${firstUnanswered.id} untuk dilengkapi terlebih dahulu.`
+                        `Terdapat ${unanswered.length} soal akademik yang terlewat belum terjawab. Kami telah mengembalikan Anda ke halaman Soal Nomor ${shuffledIndex + 1} (No. Asli: ${firstUnanswered.id}) untuk dilengkapi terlebih dahulu.`
                     );
                 } else {
                     setStep(2);
@@ -693,9 +719,9 @@
                             <p style="font-weight: bold; text-decoration: underline;">${dataToPrint.nama}</p>
                         </div>
                         <div style="width: 45%;">
-                            <p>Tangerang Selatan, ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                            <p style="margin-bottom: 50px;">Kepala Sekolah SMA Malika,</p>
-                            <p style="font-weight: bold; text-decoration: underline;">Ustadz Dr. H. Ahmad Malika, M.Pd.</p>
+                            <p>Kota Tangerang, ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            <p style="margin-bottom: 50px;">Tim Studi dan Karir MBS,</p>
+                            <p style="font-weight: bold; text-decoration: underline;">All Teams.</p>
                         </div>
                     </div>
                 `;
@@ -712,41 +738,84 @@
                 html2pdf().set(opt).from(element).save();
             };
 
-            // CSV Export function for Spreadsheets
-            const handleExportCSV = () => {
+            // --- EKSPOR REKAPITULASI SELURUH SISWA KE FORMAT PDF RESMI (REVISI BARU) ---
+            const handleExportAllPDF = () => {
                 if (allResults.length === 0) {
-                    showAlert("Data Kosong", "Belum ada respon siswa yang tersimpan di sistem.");
+                    showAlert("Data Kosong", "Belum ada respon siswa yang masuk untuk dicetak.");
                     return;
                 }
 
-                let csvContent = "data:text/csv;charset=utf-8,";
-                csvContent += "No,Nama Siswa,Kelompok Kelas,Skor Ujian IPA (Max 20),Skor Ujian IPS (Max 20),Minat IPA (%),Minat IPS (%),Gaya Belajar IPA (%),Gaya Belajar IPS (%),Pilihan Karir,Rekomendasi Jurusan,Waktu Submit\n";
+                const element = document.createElement("div");
+                element.className = "p-8 bg-white text-slate-800 space-y-6";
+                element.style.fontFamily = "'Plus Jakarta Sans', sans-serif";
 
-                allResults.forEach((row, index) => {
-                    const rowData = [
-                        index + 1,
-                        `"${row.nama}"`,
-                        `"${row.kelas}"`,
-                        row.results?.scoreIpaUjian || 0,
-                        row.results?.scoreIpsUjian || 0,
-                        row.results?.pctIpaAngket?.toFixed(1) || 0,
-                        row.results?.pctIpsAngket?.toFixed(1) || 0,
-                        row.results?.pctIpaGaya?.toFixed(1) || 0,
-                        row.results?.pctIpsGaya?.toFixed(1) || 0,
-                        `"${row.details?.selectedCareers?.join(', ') || ''}"`,
-                        `"${row.results?.recommendation || ''}"`,
-                        row.results?.timestamp || ''
-                    ];
-                    csvContent += rowData.join(",") + "\n";
+                let rowsHtml = "";
+                allResults.forEach((row, idx) => {
+                    rowsHtml += `
+                        <tr style="border-bottom: 1px solid #e2e8f0; font-size: 10px;">
+                            <td style="padding: 6px; text-align: center;">${idx + 1}</td>
+                            <td style="padding: 6px; font-weight: bold;">${row.nama}</td>
+                            <td style="padding: 6px; color: #475569;">${row.kelas.replace("XI IPA/IPS - ", "")}</td>
+                            <td style="padding: 6px; text-align: center; font-weight: bold; color: #2563eb;">${row.results?.scoreIpaUjian}</td>
+                            <td style="padding: 6px; text-align: center; font-weight: bold; color: #db2777;">${row.results?.scoreIpsUjian}</td>
+                            <td style="padding: 6px; text-align: center; color: #2563eb;">${row.results?.pctIpaAngket?.toFixed(0)}%</td>
+                            <td style="padding: 6px; text-align: center; color: #db2777;">${row.results?.pctIpsAngket?.toFixed(0)}%</td>
+                            <td style="padding: 6px; font-weight: bold; color: #1e3a8a;">${row.results?.recommendation?.replace(" (Matematika dan Ilmu Pengetahuan Alam)", "").replace(" (Ilmu Pengetahuan Sosial)", "")}</td>
+                        </tr>
+                    `;
                 });
 
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `Penjurusan_SMA_Malika_${new Date().toISOString().slice(0, 10)}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                element.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 4px solid #1e3a8a; padding-bottom: 12px; margin-bottom: 20px;">
+                        <img src="https://iili.io/FsLlXA7.png" style="height: 60px; width: 60px; object-fit: contain;" />
+                        <div style="text-align: right;">
+                            <h2 style="font-size: 16px; font-weight: 800; color: #1e3a8a; margin: 0;">REKAPITULASI ASESMEN PENJURUSAN KELAS XI</h2>
+                            <h3 style="font-size: 12px; font-weight: 700; color: #475569; margin: 2px 0 0 0;">SMA MALIKA ISLAMIC BOARDING SCHOOL</h3>
+                            <p style="font-size: 8px; color: #94a3b8; margin: 2px 0 0 0;">Dicetak pada: ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 10px; margin-bottom: 15px; color: #475569; display: flex; justify-content: space-between;">
+                        <span>Total Respon Masuk: <strong>${allResults.length} Siswa</strong></span>
+                        <span>Sistem Penyimpanan: <strong>${isCloudActive ? 'Live Cloud Database' : 'Offline Browser Memory'}</strong></span>
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; border: 1px solid #cbd5e1;">
+                        <thead>
+                            <tr style="background-color: #1e3a8a; color: white; font-size: 10px;">
+                                <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1; width: 5%;">No</th>
+                                <th style="padding: 8px; border: 1px solid #cbd5e1; width: 30%;">Nama Siswa</th>
+                                <th style="padding: 8px; border: 1px solid #cbd5e1; width: 10%;">Kelas</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1; width: 10%;">Ujian IPA</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1; width: 10%;">Ujian IPS</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1; width: 10%;">Minat IPA</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1; width: 10%;">Minat IPS</th>
+                                <th style="padding: 8px; border: 1px solid #cbd5e1; width: 15%;">Rekomendasi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top: 40px; display: flex; justify-content: flex-end; font-size: 10px; text-align: center;">
+                        <div style="width: 250px;">
+                            <p>Mengetahui,</p>
+                            <p style="margin-bottom: 60px;">Kepala Sekolah SMA Malika,</p>
+                            <p style="font-weight: bold; text-decoration: underline;">Ustadz Dr. H. Ahmad Malika, M.Pd.</p>
+                        </div>
+                    </div>
+                `;
+
+                const opt = {
+                    margin:       0.4,
+                    filename:     `Rekap_Penjurusan_SMA_Malika_${new Date().toISOString().slice(0, 10)}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2 },
+                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(element).save();
             };
 
             // Fast Dummy Data Generator for Testing (Mendukung Hybrid offline & cloud)
@@ -912,7 +981,7 @@
                     <main className="flex-grow max-w-7xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 flex flex-col justify-start">
                         {screen === 'login' && (
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center py-4">
-                                {/* Left Info Banner */}
+                                {/* Left Info Banner (Kalimat Pembuka Baru) */}
                                 <div className="lg:col-span-7 space-y-6">
                                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold">
                                         <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
@@ -923,14 +992,14 @@
                                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Masa Depan Terbaikmu</span>
                                     </h2>
                                     <p className="text-slate-600 leading-relaxed max-w-xl text-sm sm:text-base">
-                                        Selamat datang di portal resmi penentuan peminatan kelas XI SMA Malika Islamic Boarding School. Sistem ini memadukan **Ujian Akademik Terukur (IPA & IPS)**, **Angket Minat**, serta **Kecenderungan Gaya Belajar** untuk memberikan rekomendasi yang objektif dan transparan.
+                                        Selamat datang di portal resmi penentuan peminatan kelas XI SMA Malika Islamic Boarding School. Sistem ini memadukan Ujian Akademik Terukur (IPA & IPS), Angket Minat, serta Kecenderungan Gaya Belajar untuk memberikan rekomendasi yang objektif dan transparan.
                                     </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                                         <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100 flex gap-3 items-start">
                                             <div className="bg-blue-50 text-blue-600 p-3 rounded-lg"><i className="fa-solid fa-brain"></i></div>
                                             <div>
                                                 <h4 className="font-bold text-slate-800 text-sm">40 Soal Akademik</h4>
-                                                <p className="text-xs text-slate-500 mt-1">Mengukur daya penalaran Sains & Sosial secara komprehensif.</p>
+                                                <p className="text-xs text-slate-500 mt-1">Mengukur daya penalaran Sains & Sosial secara komprehensif (Sistem Acak Pintar).</p>
                                             </div>
                                         </div>
                                         <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100 flex gap-3 items-start">
@@ -1003,7 +1072,7 @@
                                     </div>
 
                                     <div className="mt-6 pt-6 border-t border-slate-100 text-center">
-                                        <p className="text-[11px] text-slate-400">Pastikan koneksi internet stabil selama proses pengerjaan ujian & angket.</p>
+                                        <p className="text-[11px] text-slate-400">Sistem pintar secara otomatis mengacak soal ujian untuk meminimalisir saling mencontek.</p>
                                     </div>
                                 </div>
                             </div>
@@ -1066,7 +1135,7 @@
                                                 </div>
                                                 <div className="flex gap-3 items-start bg-amber-50 p-4 rounded-xl border border-amber-100/60">
                                                     <i className="fa-solid fa-clock text-amber-600 mt-1"></i>
-                                                    <p>Pengerjaan ujian akademik berfokus pada kecakapan kognitif Anda. Sistem pintar kami akan otomatis mengecek kelengkapan jawaban Anda saat selesai.</p>
+                                                    <p>Pengerjaan ujian akademik berfokus pada kecakapan kognitif Anda. Sistem pintar kami akan otomatis mengacak soal ujian untuk menghindari kecurangan.</p>
                                                 </div>
                                                 
                                                 {/* SKALA PENILAIAN */}
@@ -1115,38 +1184,42 @@
                                                 ></div>
                                             </div>
 
+                                            {/* Merender soal yang diacak berdasarkan urutan halaman */}
                                             <div className="space-y-6 overflow-y-auto max-h-[420px] pr-2 animate-fadeIn">
-                                                {SOAL_UJIAN.slice(ujianPage * 5, (ujianPage + 1) * 5).map((soal) => (
-                                                    <div key={soal.id} className="p-4 bg-slate-50 hover:bg-slate-100/60 border border-slate-200/60 rounded-xl transition-all">
-                                                        <div className="flex gap-2 mb-3">
-                                                            <span className="font-bold text-sm text-blue-600">{soal.id}.</span>
-                                                            <p className="text-sm text-slate-800 font-semibold whitespace-pre-line">{soal.text}</p>
+                                                {randomizedQuestions.slice(ujianPage * 5, (ujianPage + 1) * 5).map((soal, index) => {
+                                                    const displayNum = ujianPage * 5 + index + 1;
+                                                    return (
+                                                        <div key={soal.id} className="p-4 bg-slate-50 hover:bg-slate-100/60 border border-slate-200/60 rounded-xl transition-all">
+                                                            <div className="flex gap-2 mb-3">
+                                                                <span className="font-bold text-sm text-blue-600">{displayNum}.</span>
+                                                                <p className="text-sm text-slate-800 font-semibold whitespace-pre-line">{soal.text}</p>
+                                                            </div>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-6">
+                                                                {soal.options.map((opt, oIdx) => {
+                                                                    const letter = opt.charAt(0);
+                                                                    const isSelected = ujianAnswers[soal.id] === letter;
+                                                                    return (
+                                                                        <button
+                                                                            key={oIdx}
+                                                                            onClick={() => {
+                                                                                setUjianAnswers({
+                                                                                    ...ujianAnswers,
+                                                                                    [soal.id]: letter
+                                                                                });
+                                                                            }}
+                                                                            className={`text-left p-3 rounded-lg text-xs border transition-all flex items-center gap-2 ${isSelected ? 'bg-blue-600 text-white border-blue-600 font-bold shadow-sm' : 'bg-white border-slate-200 hover:border-blue-400'}`}
+                                                                        >
+                                                                            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${isSelected ? 'bg-white text-blue-600' : 'bg-slate-100 text-slate-600'}`}>
+                                                                                {letter}
+                                                                            </span>
+                                                                            {opt.substring(3)}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
                                                         </div>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-6">
-                                                            {soal.options.map((opt, oIdx) => {
-                                                                const letter = opt.charAt(0);
-                                                                const isSelected = ujianAnswers[soal.id] === letter;
-                                                                return (
-                                                                    <button
-                                                                        key={oIdx}
-                                                                        onClick={() => {
-                                                                            setUjianAnswers({
-                                                                                ...ujianAnswers,
-                                                                                [soal.id]: letter
-                                                                            });
-                                                                        }}
-                                                                        className={`text-left p-3 rounded-lg text-xs border transition-all flex items-center gap-2 ${isSelected ? 'bg-blue-600 text-white border-blue-600 font-bold shadow-sm' : 'bg-white border-slate-200 hover:border-blue-400'}`}
-                                                                    >
-                                                                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${isSelected ? 'bg-white text-blue-600' : 'bg-slate-100 text-slate-600'}`}>
-                                                                            {letter}
-                                                                        </span>
-                                                                        {opt.substring(3)}
-                                                                    </button>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
 
                                             <div className="flex justify-between items-center pt-4 border-t border-slate-100">
@@ -1179,7 +1252,7 @@
                                         </div>
                                     )}
 
-                                    {/* STEP 2: ANGKET MINAT (1-4) */}
+                                    {/* STEP 2: ANGKET MINAT (1-4: Kurang Sesuai) */}
                                     {step === 2 && (
                                         <div className="space-y-6 flex-grow">
                                             <div className="border-b border-slate-100 pb-4">
@@ -1585,12 +1658,14 @@
                                                     <i className="fa-solid fa-wand-magic-sparkles"></i>
                                                     Generate 10 Data Simulasi
                                                 </button>
+                                                
+                                                {/* EKSPOR KE PDF (REVISI BARU) */}
                                                 <button 
-                                                    onClick={handleExportCSV}
+                                                    onClick={handleExportAllPDF}
                                                     className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center gap-2 shadow-sm"
                                                 >
-                                                    <i className="fa-solid fa-file-excel"></i>
-                                                    Ekspor ke Spreadsheet (CSV)
+                                                    <i className="fa-solid fa-file-pdf"></i>
+                                                    Ekspor Rekapitulasi (PDF)
                                                 </button>
                                             </div>
                                         </div>
