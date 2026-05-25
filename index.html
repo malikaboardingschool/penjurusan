@@ -111,7 +111,7 @@
             { id: 2, text: "Perhatikan nama spesies di bawah ini!\n1. Mangifera indica\n2. Gnetum Gnemon\n3. Musa paradisiaca\n4. Arachis Hypogea\n5. Cycas Rumpii\n6. Ficus benjamina\nNama spesies yang sesuai dengan aturan binomial nomenclature ditunjukkan oleh nomor...", options: ["A. 1, 2, 3", "B. 1, 3, 4", "C. 1, 4, 5", "D. 1, 3, 6", "E. 1, 2, 5"], answer: "D", type: "IPA" },
             { id: 3, text: "Hidrogen, Litium, Natrium, Kalium, dan Rubidium berada pada golongan yang sama. Jari-jari atom terbesar dimiliki oleh unsur...", options: ["A. Rubidium", "B. Kalium", "C. Natrium", "D. Litium", "E. Hidrogen"], answer: "A", type: "IPA" },
             { id: 4, text: "Masa penempelan virus hingga sebelum munculnya gejala disebut...", options: ["A. Masa inaktif", "B. Masa kritis", "C. Masa nonfertil", "D. Masa inkubasi", "E. Masa fertil"], answer: "D", type: "IPA" },
-            { id: 5, text: "Pak Andi mengalami gejala berupa warna kulit dan mata menjadi kuning, tinja berwarna pucat, muntah-muntah, hingga kesadaran menurun. Gejala lanjutannya adalah liver membengkak. Kemungkinan besar Pak Andi terserang penyakit...", options: ["A. DBD", "B. Hepatitis", "C. Gonorrhea", "D. AIDS", "E. Hemokromatosis"], answer: "B", type: "IPA" },
+            { id: 5, text: "Pak Andi mengalami gejala berupa warna kulit and mata menjadi kuning, tinja berwarna pucat, muntah-muntah, hingga kesadaran menurun. Gejala lanjutannya adalah liver membengkak. Kemungkinan besar Pak Andi terserang penyakit...", options: ["A. DBD", "B. Hepatitis", "C. Gonorrhea", "D. AIDS", "E. Hemokromatosis"], answer: "B", type: "IPA" },
             { id: 6, text: "Unsur X³⁻ memiliki 54 proton. Konfigurasi elektron unsur X (netral) yang tepat adalah...", options: ["A. 2, 8, 18, 18, 8, 3", "B. 2, 8, 18, 18, 5", "C. 2, 8, 18, 18, 8, 4", "D. 2, 8, 18, 18, 8, 1", "E. 2, 8, 18, 18, 11"], answer: "B", type: "IPA" },
             { id: 7, text: "Kelompok besaran di bawah ini yang termasuk besaran vektor adalah...", options: ["A. Kelajuan, masa, gaya", "B. Energi, usaha, suhu", "C. Kecepatan, gaya, perpindahan", "D. Tegangan, massa, gaya", "E. Tekanan, jumlah zat, ketinggian"], answer: "C", type: "IPA" },
             { id: 8, text: "Berapakah jumlah angka penting pada hasil pengukuran massa 5,0067 g?", options: ["A. 2 AP", "B. 5 AP", "C. 6 AP", "D. 1 AP", "E. 4 AP"], answer: "B", type: "IPA" },
@@ -751,6 +751,10 @@
 
                 let rowsHtml = "";
                 allResults.forEach((row, idx) => {
+                    const karirList = row.details?.selectedCareers?.join(", ") || "-";
+                    const karirLain = row.details?.otherCareer ? ` (${row.details.otherCareer})` : "";
+                    const fullKarirText = karirList + karirLain;
+
                     rowsHtml += `
                         <tr style="border-bottom: 1px solid #e2e8f0; font-size: 10px;">
                             <td style="padding: 6px; text-align: center;">${idx + 1}</td>
@@ -760,6 +764,7 @@
                             <td style="padding: 6px; text-align: center; font-weight: bold; color: #db2777;">${row.results?.scoreIpsUjian}</td>
                             <td style="padding: 6px; text-align: center; color: #2563eb;">${row.results?.pctIpaAngket?.toFixed(0)}%</td>
                             <td style="padding: 6px; text-align: center; color: #db2777;">${row.results?.pctIpsAngket?.toFixed(0)}%</td>
+                            <td style="padding: 6px; color: #334155; font-size: 9px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${fullKarirText}</td>
                             <td style="padding: 6px; font-weight: bold; color: #1e3a8a;">${row.results?.recommendation?.replace(" (Matematika dan Ilmu Pengetahuan Alam)", "").replace(" (Ilmu Pengetahuan Sosial)", "")}</td>
                         </tr>
                     `;
@@ -784,13 +789,14 @@
                         <thead>
                             <tr style="background-color: #1e3a8a; color: white; font-size: 10px;">
                                 <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1; width: 5%;">No</th>
-                                <th style="padding: 8px; border: 1px solid #cbd5e1; width: 30%;">Nama Siswa</th>
-                                <th style="padding: 8px; border: 1px solid #cbd5e1; width: 10%;">Kelas</th>
-                                <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1; width: 10%;">Ujian IPA</th>
-                                <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1; width: 10%;">Ujian IPS</th>
-                                <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1; width: 10%;">Minat IPA</th>
-                                <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1; width: 10%;">Minat IPS</th>
-                                <th style="padding: 8px; border: 1px solid #cbd5e1; width: 15%;">Rekomendasi</th>
+                                <th style="padding: 8px; border: 1px solid #cbd5e1; width: 25%;">Nama Siswa</th>
+                                <th style="padding: 8px; border: 1px solid #cbd5e1; width: 8%;">Kelas</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1; width: 8%;">Ujian IPA</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1; width: 8%;">Ujian IPS</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1; width: 8%;">Minat IPA</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1; width: 8%;">Minat IPS</th>
+                                <th style="padding: 8px; border: 1px solid #cbd5e1; width: 17%;">Aspirasi Karir</th>
+                                <th style="padding: 8px; border: 1px solid #cbd5e1; width: 10%;">Rekomendasi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1295,7 +1301,7 @@
                                         </div>
                                     )}
 
-                                    {/* STEP 2: ANGKET MINAT */}
+                                    {/* STEP 2: ANGKET MINAT (1-4: Kurang Sesuai) */}
                                     {step === 2 && (
                                         <div className="space-y-6 flex-grow">
                                             <div className="border-b border-slate-100 pb-4">
@@ -1317,7 +1323,7 @@
                                                                         return (
                                                                             <button
                                                                                 key={likert.value}
-                                                                                onClick={() => setAngketIpaAnswers({...angketIpaAnswers, [num]: likert.value})}
+                                                                                onClick={() => setSelectedIpa(num, likert.value)}
                                                                                 className={`py-2 px-3 rounded-xl text-[11px] font-bold border transition-all text-center flex flex-col items-center justify-center gap-0.5 ${isSelected ? 'bg-blue-600 border-blue-600 text-white shadow-md transform scale-105 font-extrabold' : likert.color}`}
                                                                             >
                                                                                 <span className="text-xs">{likert.value}</span>
@@ -1668,7 +1674,7 @@
                                         <div className="pt-2 space-y-2">
                                             <input 
                                                 type="password" 
-                                                placeholder="Sandi Admin (Gunakan: adminmalika)"
+                                                placeholder="Sandi Admin (Gunakan: syududu)"
                                                 value={adminPassword}
                                                 onChange={(e) => { setAdminPassword(e.target.value); setAdminError(''); }}
                                                 className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-3 px-4 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm text-center font-bold"
@@ -1764,6 +1770,7 @@
                                                             <th scope="col" className="px-4 py-3 text-center text-xs font-bold text-pink-600 uppercase">Ujian IPS</th>
                                                             <th scope="col" className="px-4 py-3 text-center text-xs font-bold text-blue-600 uppercase">Minat IPA</th>
                                                             <th scope="col" className="px-4 py-3 text-center text-xs font-bold text-pink-600 uppercase">Minat IPS</th>
+                                                            <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Aspirasi Karir</th>
                                                             <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase font-semibold text-blue-700">Rekomendasi</th>
                                                             <th scope="col" className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Aksi</th>
                                                         </tr>
@@ -1771,35 +1778,44 @@
                                                     <tbody className="divide-y divide-slate-200 text-xs">
                                                         {allResults.length === 0 ? (
                                                             <tr>
-                                                                <td colSpan="9" className="text-center py-8 text-slate-400 font-medium">Belum ada respon ujian atau angket yang masuk.</td>
+                                                                <td colSpan="10" className="text-center py-8 text-slate-400 font-medium">Belum ada respon ujian atau angket yang masuk.</td>
                                                             </tr>
                                                         ) : (
-                                                            allResults.map((row, index) => (
-                                                                <tr key={index} className="hover:bg-slate-50">
-                                                                    <td className="px-4 py-3 text-slate-500 font-medium">{index + 1}</td>
-                                                                    <td className="px-4 py-3 font-bold text-slate-800">{row.nama}</td>
-                                                                    <td className="px-4 py-3 text-slate-500 font-medium">{row.kelas}</td>
-                                                                    <td className="px-4 py-3 text-center font-bold text-blue-600">{row.results?.scoreIpaUjian} <span className="text-[10px] text-slate-400">/20</span></td>
-                                                                    <td className="px-4 py-3 text-center font-bold text-pink-600">{row.results?.scoreIpsUjian} <span className="text-[10px] text-slate-400">/20</span></td>
-                                                                    <td className="px-4 py-3 text-center font-medium text-blue-500">{row.results?.pctIpaAngket?.toFixed(0)}%</td>
-                                                                    <td className="px-4 py-3 text-center font-medium text-pink-500">{row.results?.pctIpsAngket?.toFixed(0)}%</td>
-                                                                    <td className="px-4 py-3">
-                                                                        <span className={`inline-block px-2.5 py-1 rounded-full font-bold text-[10px] uppercase ${row.results?.recommendation?.includes('MIPA') ? 'bg-blue-100 text-blue-800' : row.results?.recommendation?.includes('IPS') ? 'bg-pink-100 text-pink-800' : 'bg-cyan-100 text-cyan-800'}`}>
-                                                                            {row.results?.recommendation?.split(' ')[0]}
-                                                                        </span>
-                                                                    </td>
-                                                                    <td className="px-4 py-3 text-center">
-                                                                        <button 
-                                                                            onClick={() => handleDownloadPDF(row)}
-                                                                            className="bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-1 px-2.5 rounded-lg border border-blue-200/60 transition-all flex items-center gap-1 mx-auto"
-                                                                            title="Unduh Berkas PDF Resmi Siswa"
-                                                                        >
-                                                                            <i className="fa-solid fa-file-pdf"></i>
-                                                                            <span>PDF</span>
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
-                                                            ))
+                                                            allResults.map((row, index) => {
+                                                                const careersJoined = row.details?.selectedCareers?.join(', ') || '-';
+                                                                const extraCareer = row.details?.otherCareer ? ` (${row.details.otherCareer})` : '';
+                                                                const fullCareersText = careersJoined + extraCareer;
+
+                                                                return (
+                                                                    <tr key={index} className="hover:bg-slate-50">
+                                                                        <td className="px-4 py-3 text-slate-500 font-medium">{index + 1}</td>
+                                                                        <td className="px-4 py-3 font-bold text-slate-800">{row.nama}</td>
+                                                                        <td className="px-4 py-3 text-slate-500 font-medium">{row.kelas}</td>
+                                                                        <td className="px-4 py-3 text-center font-bold text-blue-600">{row.results?.scoreIpaUjian} <span className="text-[10px] text-slate-400">/20</span></td>
+                                                                        <td className="px-4 py-3 text-center font-bold text-pink-600">{row.results?.scoreIpsUjian} <span className="text-[10px] text-slate-400">/20</span></td>
+                                                                        <td className="px-4 py-3 text-center font-medium text-blue-500">{row.results?.pctIpaAngket?.toFixed(0)}%</td>
+                                                                        <td className="px-4 py-3 text-center font-medium text-pink-500">{row.results?.pctIpsAngket?.toFixed(0)}%</td>
+                                                                        <td className="px-4 py-3 text-slate-600 truncate max-w-[150px]" title={fullCareersText}>
+                                                                            {fullCareersText}
+                                                                        </td>
+                                                                        <td className="px-4 py-3">
+                                                                            <span className={`inline-block px-2.5 py-1 rounded-full font-bold text-[10px] uppercase ${row.results?.recommendation?.includes('MIPA') ? 'bg-blue-100 text-blue-800' : row.results?.recommendation?.includes('IPS') ? 'bg-pink-100 text-pink-800' : 'bg-cyan-100 text-cyan-800'}`}>
+                                                                                {row.results?.recommendation?.split(' ')[0]}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="px-4 py-3 text-center">
+                                                                            <button 
+                                                                                onClick={() => handleDownloadPDF(row)}
+                                                                                className="bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-1 px-2.5 rounded-lg border border-blue-200/60 transition-all flex items-center gap-1 mx-auto"
+                                                                                title="Unduh Berkas PDF Resmi Siswa"
+                                                                            >
+                                                                                <i className="fa-solid fa-file-pdf"></i>
+                                                                                <span>PDF</span>
+                                                                            </button>
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            })
                                                         )}
                                                     </tbody>
                                                 </table>
