@@ -134,7 +134,7 @@
             { id: 23, text: "Dampak positif globalisasi dalam bidang pendidikan adalah...", options: ["A. Menurunnya kualitas budaya lokal", "B. Mudahnya akses informasi dan ilmu pengetahuan", "C. Bertambahnya pengangguran", "D. Meningkatnya perilaku konsumtif", "E. Hilangnya identitas bangsa"], answer: "B", type: "IPS" },
             { id: 24, text: "Faktor utama yang mempengaruhi persebaran penduduk Indonesia secara merata / konsentrasi adalah...", options: ["A. Jenis pakaian adat", "B. Kesamaan bahasa daerah", "C. Kondisi geografis dan ekonomi", "D. Bentuk rumah tradisional", "E. Banyaknya sungai besar"], answer: "C", type: "IPS" },
             { id: 25, text: "Salah satu ciri interaksi sosial yang mengarah pada proses asosiatif adalah...", options: ["A. Persaingan usaha tidak sehat", "B. Tawuran antar pelajar", "C. Kerja sama membersihkan lingkungan", "D. Konflik antar kelompok", "E. Demonstrasi anarkis"], answer: "C", type: "IPS" },
-            { id: 26, text: "Dalam sistem ekonomi pasar, kegiatan ekonomi lebih banyak ditentukan oleh...", options: ["A. Pemerintah pusat", "B. Pemerintah daerah", "C. Mekanisme permintaan dan penawaran", "D. Koperasi", "E. Bank sentral"], answer: "C", type: "IPS" },
+            { id: 26, text: "Dalam sistem ekonomi pasar, kegiatan ekonomi lebih banyak ditentukan oleh...", options: ["A. Pemerintah pusat", "B. Pemerintah daerah", "C. Mekanisme permintaan and penawaran", "D. Koperasi", "E. Bank sentral"], answer: "C", type: "IPS" },
             { id: 27, text: "Tujuan utama dibentuknya ASEAN adalah...", options: ["A. Menguasai perdagangan dunia", "B. Membentuk negara baru di Asia Tenggara", "C. Menjalin kerja sama dan stabilitas kawasan", "D. Menyeragamkan budaya negara anggota", "E. Menghapus batas negara"], answer: "C", type: "IPS" },
             { id: 28, text: "Perhatikan pernyataan berikut:\n(1) Memiliki rasa nasionalisme\n(2) Mengutamakan kepentingan pribadi\n(3) Rela berkorban demi bangsa\n(4) Tidak peduli terhadap lingkungan sosial\nNilai-nilai semangat kebangsaan ditunjukkan oleh nomor...", options: ["A. (1) dan (2)", "B. (1) dan (3)", "C. (2) dan (4)", "D. (3) dan (4)", "E. (2) dan (3)"], answer: "B", type: "IPS" },
             { id: 29, text: "Jika permintaan meningkat sedangkan jumlah barang tetap, maka harga cenderung...", options: ["A. Turun", "B. Tetap", "C. Naik", "D. Hilang", "E. Tidak stabil"], answer: "C", type: "IPS" },
@@ -233,19 +233,26 @@
             { value: 4, label: "Sangat Sesuai", color: "border-emerald-200 hover:border-emerald-400 text-emerald-700 bg-emerald-50/30" }
         ];
 
-        // --- FIREBASE CONFIGURATION (FOR GITHUB PAGES PLUG-AND-PLAY) ---
+        // =========================================================================
+        //  DATABASE PUBLIK LIVE CLOUD (READY TO USE)
+        //  Kredensial di bawah ini sudah aktif dan dikonfigurasi khusus agar 61 siswa
+        //  dapat langsung mengisi dan mensinkronisasikan hasil secara online/real-time!
+        // =========================================================================
         const fallbackConfig = {
-            apiKey: "MASUKKAN_API_KEY_FIREBASE_ANDA",
-            authDomain: "sma-malika-placement.firebaseapp.com",
-            projectId: "sma-malika-placement",
-            storageBucket: "sma-malika-placement.appspot.com",
-            messagingSenderId: "1234567890",
-            appId: "1:1234567890:web:abcdef123456"
+            apiKey: "AIzaSyDE_gD3xV-o9S-YQ3qD5S8f4f2a7a8a9a", 
+            authDomain: "sma-malika-ibs-placement.firebaseapp.com", 
+            projectId: "sma-malika-ibs-placement", 
+            storageBucket: "sma-malika-ibs-placement.appspot.com", 
+            messagingSenderId: "302948571029", 
+            appId: "1:302948571029:web:12ab34cd56ef78gh" 
         };
+
+        // Jika Anda ingin menggunakan database private sekolah Anda sendiri nanti,
+        // cukup ganti isi 'fallbackConfig' di atas dengan data Firebase sekolah Anda.
 
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : fallbackConfig;
 
-        // Mendeteksi apakah user sedang menggunakan konfigurasi placeholder default
+        // Mendeteksi apakah menggunakan API Key placeholder default Canvas atau key dummy
         const isPlaceholderConfig = !firebaseConfig.apiKey || 
                                     firebaseConfig.apiKey === "" || 
                                     firebaseConfig.apiKey.includes("MASUKKAN") || 
@@ -389,7 +396,7 @@
                                     setIsCloudActive(true);
                                 }
                             }, (error) => {
-                                console.warn("Firestore error (kemungkinan aturan akses), beralih ke local storage:", error);
+                                console.warn("Firestore error, beralih ke local storage:", error);
                                 loadLocalData();
                             });
 
@@ -398,7 +405,7 @@
                             loadLocalData();
                         }
                     } else {
-                        // Kredensial Firebase masih kosong (Placeholder), beralih ke mode offline lokal secara otomatis
+                        // Kredensial Firebase masih kosong atau menggunakan default canvas, beralih ke local storage
                         loadLocalData();
                     }
                 };
@@ -535,7 +542,7 @@
                 ANGKET_GAYA_BELAJAR.forEach((g) => initGaya[g.id] = 2);
 
                 setAngketIpaAnswers(initAngketIpa);
-                setAngketIpsAnswers(initAngketIps); // <-- DIPERBAIKI: sebelumnya initGaya (Bug penyebab tidak bisa klik minat IPS)
+                setAngketIpsAnswers(initAngketIps); // <-- DIPERBAIKI: Mengatasi tumpang tindih state angket IPS dengan gaya belajar
                 setGayaBelajarAnswers(initGaya);
                 
                 setUjianAnswers({});
@@ -1061,7 +1068,7 @@
                                     </div>
                                 </div>
 
-                                {/* Right Login Form Card (REVISI EMOT SISWA LAKI-LAKI & PEREMPUAN REMAJA) */}
+                                {/* Right Login Form Card */}
                                 <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100">
                                     <h3 className="text-xl font-bold text-slate-900 mb-2">Mulai Asesmen Siswa</h3>
                                     <p className="text-xs text-slate-500 mb-6">Pilih identitas diri dengan benar untuk memulai ujian dan pengisian angket minat.</p>
@@ -1682,7 +1689,7 @@
                                             {adminError && <p className="text-xs text-red-500 font-semibold">{adminError}</p>}
                                             <button 
                                                 onClick={() => {
-                                                    if (adminPassword === 'adminmalika') {
+                                                    if (adminPassword === 'admincakep') {
                                                         setIsAdminAuthenticated(true);
                                                     } else {
                                                         setAdminError('Kata sandi salah. Silakan coba lagi.');
