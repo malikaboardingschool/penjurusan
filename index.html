@@ -193,7 +193,7 @@
             { id: 2, text: "Saya lebih mudah memahami konsep melalui diskusi dan studi kasus.", category: "IPS" },
             { id: 3, text: "Saya suka kegiatan observasi and eksperimen.", category: "IPA" },
             { id: 4, text: "Saya nyaman berbicara di depan orang lain.", category: "IPS" },
-            { id: 5, text: "Saya teliti terhadap detail dan proses.", category: "IPA" },
+            { id: 5, text: "Saya teliti terhadap detail and proses.", category: "IPA" },
             { id: 6, text: "Saya senang menganalisis perilaku manusia atau fenomena sosial.", category: "IPS" },
             { id: 7, text: "Saya lebih menikmati tantangan logika dibanding hafalan.", category: "IPA" },
             { id: 8, text: "Saya memiliki rasa ingin tahu tinggi terhadap perkembangan masyarakat.", category: "IPS" },
@@ -487,7 +487,7 @@
                     reason = `Kecerdasan inter personal, kecintaan Anda terhadap analisis fenomena sosial, minat wirausaha yang tinggi, serta pemahaman materi humaniora yang sangat baik di ujian sosial (${scoreIpsUjian}/20) menunjukkan potensi optimal Anda berada di rumpun IPS.`;
                 } else {
                     recommendation = "MIPA atau IPS (Seimbang)";
-                    reason = `Hasil asesmen Anda menunjukkan keseimbangan potensi yang luar biasa antara penalaran sains/eksakta (${totalIpa.toFixed(1)}%) dan dinamika ilmu sosial/humaniora (${totalIps.toFixed(1)}%). Anda memiliki fleksibilitas untuk sukses di kedua jurusan tersebut berdasarkan kenyamanan karir pilihan Anda.`;
+                    reason = `Hasil asesmen Anda menunjukkan keseimbangan potensi yang luar biasa antara penalaran sains/eksakta (${totalIpa.toFixed(1)}%) and dinamika ilmu sosial/humaniora (${totalIps.toFixed(1)}%). Anda memiliki fleksibilitas untuk sukses di kedua jurusan tersebut berdasarkan kenyamanan karir pilihan Anda.`;
                 }
 
                 return {
@@ -630,7 +630,7 @@
                 setScreen('result');
             };
 
-            // PDF Download Engine (Client-side HTML-to-PDF Generator)
+            // PDF Download Engine (Client-side HTML-to-PDF Generator - REVISI KOTA TANGERANG, TIM PENGEMBANG MBS, ALL TEAM)
             const handleDownloadPDF = (dataToPrint) => {
                 if (!dataToPrint) return;
 
@@ -719,9 +719,9 @@
                             <p style="font-weight: bold; text-decoration: underline;">${dataToPrint.nama}</p>
                         </div>
                         <div style="width: 45%;">
-                            <p>Tangerang Selatan, ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                            <p style="margin-bottom: 50px;">Kepala Sekolah SMA Malika,</p>
-                            <p style="font-weight: bold; text-decoration: underline;">Ustadz Dr. H. Ahmad Malika, M.Pd.</p>
+                            <p>Kota Tangerang, ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            <p style="margin-bottom: 50px;">Tim Pengembangan MBS,</p>
+                            <p style="font-weight: bold; text-decoration: underline;">All Team</p>
                         </div>
                     </div>
                 `;
@@ -738,7 +738,7 @@
                 html2pdf().set(opt).from(element).save();
             };
 
-            // --- EKSPOR REKAPITULASI SELURUH SISWA KE FORMAT PDF RESMI ---
+            // --- EKSPOR REKAPITULASI SELURUH SISWA KE FORMAT PDF RESMI (REVISI KOTA TANGERANG, TIM PENGEMBANG MBS, ALL TEAM) ---
             const handleExportAllPDF = () => {
                 if (allResults.length === 0) {
                     showAlert("Data Kosong", "Belum ada respon siswa yang masuk untuk dicetak.");
@@ -801,8 +801,8 @@
                     <div style="margin-top: 40px; display: flex; justify-content: flex-end; font-size: 10px; text-align: center;">
                         <div style="width: 250px;">
                             <p>Mengetahui,</p>
-                            <p style="margin-bottom: 60px;">Kepala Sekolah SMA Malika,</p>
-                            <p style="font-weight: bold; text-decoration: underline;">Ustadz Dr. H. Ahmad Malika, M.Pd.</p>
+                            <p style="margin-bottom: 60px;">Tim Pengembangan MBS,</p>
+                            <p style="font-weight: bold; text-decoration: underline;">All Team</p>
                         </div>
                     </div>
                 `;
@@ -1055,7 +1055,7 @@
                                     </div>
                                 </div>
 
-                                {/* Right Login Form Card */}
+                                {/* Right Login Form Card (REVISI EMOT SISWA LAKI-LAKI & PEREMPUAN REMAJA) */}
                                 <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100">
                                     <h3 className="text-xl font-bold text-slate-900 mb-2">Mulai Asesmen Siswa</h3>
                                     <p className="text-xs text-slate-500 mb-6">Pilih identitas diri dengan benar untuk memulai ujian dan pengisian angket minat.</p>
@@ -1069,14 +1069,14 @@
                                                     onClick={() => { setSelectedClass('XI IPA/IPS - Putra'); setSelectedName(''); }}
                                                     className={`py-3 px-4 rounded-xl text-sm font-bold border transition-all flex items-center justify-center gap-2 ${selectedClass === 'XI IPA/IPS - Putra' ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}
                                                 >
-                                                    <i className="fa-solid fa-mars text-blue-500"></i>
+                                                    <span className="text-base">👨‍🎓</span>
                                                     Kelas Putra
                                                 </button>
                                                 <button 
                                                     onClick={() => { setSelectedClass('XI IPA/IPS - Putri'); setSelectedName(''); }}
                                                     className={`py-3 px-4 rounded-xl text-sm font-bold border transition-all flex items-center justify-center gap-2 ${selectedClass === 'XI IPA/IPS - Putri' ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}
                                                 >
-                                                    <i className="fa-solid fa-venus text-pink-500"></i>
+                                                    <span className="text-base">👩‍🎓</span>
                                                     Kelas Putri
                                                 </button>
                                             </div>
@@ -1129,7 +1129,7 @@
                                         <div>
                                             <div className="text-xs text-slate-400 uppercase tracking-wider font-bold mb-1">Peserta Aktif</div>
                                             <div className="font-bold text-slate-900 truncate flex items-center gap-2">
-                                                <span className={`h-2.5 w-2.5 rounded-full ${selectedClass.includes('Putra') ? 'bg-blue-500' : 'bg-pink-500'}`}></span>
+                                                <span>{selectedClass.includes('Putra') ? '👨‍🎓' : '👩‍🎓'}</span>
                                                 {selectedName}
                                             </div>
                                             <div className="text-xs text-slate-500 mt-0.5">{selectedClass}</div>
@@ -1174,7 +1174,7 @@
                                             <div className="space-y-4 text-sm text-slate-600 leading-relaxed">
                                                 <div className="flex gap-3 items-start bg-blue-50 p-4 rounded-xl border border-blue-100/60">
                                                     <i className="fa-solid fa-graduation-cap text-blue-600 mt-1"></i>
-                                                    <p>Asesmen ini terdiri dari **Ujian Penjurusan** (40 soal pilihan ganda) dan **Angket Minat & Gaya Belajar** (40 poin pernyataan).</p>
+                                                    <p>Asesmen ini terdiri dari Ujian Penjurusan (40 soal pilihan ganda) dan Angket Minat & Gaya Belajar  (40 poin pernyataan).</p>
                                                 </div>
                                                 <div className="flex gap-3 items-start bg-amber-50 p-4 rounded-xl border border-amber-100/60">
                                                     <i className="fa-solid fa-clock text-amber-600 mt-1"></i>
@@ -1295,7 +1295,7 @@
                                         </div>
                                     )}
 
-                                    {/* STEP 2: ANGKET MINAT (1-4: Kurang Sesuai) */}
+                                    {/* STEP 2: ANGKET MINAT */}
                                     {step === 2 && (
                                         <div className="space-y-6 flex-grow">
                                             <div className="border-b border-slate-100 pb-4">
@@ -1538,8 +1538,9 @@
                                                 </div>
                                             </div>
 
+                                            {/* REVISI KALIMAT PERINTAH */}
                                             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-500 leading-relaxed">
-                                                Setelah menekan tombol **\"Kirim Jawaban Asesmen\"**, seluruh respons Anda akan dihitung secara real-time dan disinkronisasikan ke spreadsheets portal guru.
+                                                Setelah menekan tombol Kirim Jawaban Asesmen, seluruh respons Anda akan dihitung secara real-time dan disinkronisasikan ke spreadsheets portal guru.
                                             </div>
 
                                             <div className="flex justify-between items-center pt-4 border-t border-slate-100">
@@ -1614,12 +1615,14 @@
                                             </div>
                                         </div>
 
+                                        {/* REVISI: TOMBOL KEMBALI KE BERANDA SAAT HASIL TELAH DILIHAT */}
                                         <div className="flex justify-center pt-2">
                                             <button 
                                                 onClick={() => { setScreen('login'); setSelectedName(''); }}
-                                                className="px-6 py-3 bg-slate-800 text-white font-bold text-xs rounded-xl hover:bg-slate-900 transition-all shadow"
+                                                className="px-6 py-3 bg-blue-600 text-white font-extrabold text-xs rounded-xl hover:bg-blue-700 transition-all shadow flex items-center gap-2 transform hover:-translate-y-0.5"
                                             >
-                                                Selesai & Keluar Sesi
+                                                <i className="fa-solid fa-home"></i>
+                                                Kembali ke Beranda
                                             </button>
                                         </div>
                                     </div>
@@ -1665,7 +1668,7 @@
                                         <div className="pt-2 space-y-2">
                                             <input 
                                                 type="password" 
-                                                placeholder="Sandi Admin (Gunakan: admincakep)"
+                                                placeholder="Sandi Admin (Gunakan: adminmalika)"
                                                 value={adminPassword}
                                                 onChange={(e) => { setAdminPassword(e.target.value); setAdminError(''); }}
                                                 className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-3 px-4 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm text-center font-bold"
@@ -1711,7 +1714,7 @@
                                                     Ekspor Rekapitulasi (PDF)
                                                 </button>
 
-                                                {/* TOMBOL BARU: HAPUS SEMUA DATA */}
+                                                {/* TOMBOL: HAPUS SEMUA DATA */}
                                                 <button 
                                                     onClick={handleClearAllData}
                                                     className="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center gap-2 shadow-sm"
