@@ -189,7 +189,7 @@
         ];
 
         const ANGKET_GAYA_BELAJAR = [
-            { id: 1, text: "Saya senang belajar dengan data, angka, dan analisis.", category: "IPA" },
+            { id: 1, text: "Saya senang belajar dengan data, angka, and analisis.", category: "IPA" },
             { id: 2, text: "Saya lebih mudah memahami konsep melalui diskusi dan studi kasus.", category: "IPS" },
             { id: 3, text: "Saya suka kegiatan observasi and eksperimen.", category: "IPA" },
             { id: 4, text: "Saya nyaman berbicara di depan orang lain.", category: "IPS" },
@@ -535,7 +535,7 @@
                 ANGKET_GAYA_BELAJAR.forEach((g) => initGaya[g.id] = 2);
 
                 setAngketIpaAnswers(initAngketIpa);
-                setAngketIpsAnswers(initGaya); // <-- BUG! angketIpsAnswers malah diisi initGaya (state gaya belajar), mari kita bersihkan sekalian.
+                setAngketIpsAnswers(initAngketIps); // <-- DIPERBAIKI: sebelumnya initGaya (Bug penyebab tidak bisa klik minat IPS)
                 setGayaBelajarAnswers(initGaya);
                 
                 setUjianAnswers({});
@@ -1682,7 +1682,7 @@
                                             {adminError && <p className="text-xs text-red-500 font-semibold">{adminError}</p>}
                                             <button 
                                                 onClick={() => {
-                                                    if (adminPassword === 'admincakep') {
+                                                    if (adminPassword === 'adminmalika') {
                                                         setIsAdminAuthenticated(true);
                                                     } else {
                                                         setAdminError('Kata sandi salah. Silakan coba lagi.');
